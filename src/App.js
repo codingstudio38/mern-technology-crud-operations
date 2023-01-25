@@ -8,6 +8,7 @@ import Home from './User/Home';
 import Index from './User/Index';
 import Userspost from './User/Userspost';
 import Edituser from './User/Edituser';
+import Chatlist from './User/Chatlist';
 function App() {
   return (
     <div>
@@ -19,6 +20,7 @@ function App() {
             <Route path='home' element={<Protected Component={Home} />} />
             <Route path='edit' element={<Protected Component={Edituser} />} />
             <Route path='users-post' element={<Protected Component={Userspost} />} />
+            <Route path='chat-box' element={<Protected Component={Chatlist} />} />
           </Route>
           <Route path='*' element={<Page404 />} />
         </Routes>

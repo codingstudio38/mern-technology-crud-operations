@@ -48,6 +48,7 @@ function Userheader() {
                 <Nav className="me-auto">
                     <NavLink className={"navlink"} to="/user/home">Home</NavLink>
                     <NavLink className={"navlink"} to="/user/users-post">Users Post</NavLink>
+                    <NavLink className={"navlink"} to="/user/chat-box">Live Chat</NavLink>
                 </Nav>
                 {
                     checkUser() ?
