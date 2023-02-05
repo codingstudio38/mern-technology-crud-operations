@@ -21,6 +21,7 @@ function Chatlist() {
     const [loginid, setLoginid] = useState(LOGIN_USER._id);
     useEffect(() => {
         document.title = "MERN Technology || User - Chat Box";
+        REMOVE_LOCAL('activechatuser');
         if (LOGIN_USER === false) {
             window.localStorage.clear();
             navigate('./../../');
@@ -234,6 +235,7 @@ function Chatlist() {
     }
 
     function onNewMessage(data) {
+
         var chatuser_datais, user_is, user_id, active;
         chatuser_datais = GET_LOCAL('activechatuser');
         if (chatuser_datais !== false) {
@@ -293,6 +295,7 @@ function Chatlist() {
             return;
         }
         var name = e.target.files[0].name;
+        console.log(name);
         var ext = name.substring(name.lastIndexOf('.') + 1).toLowerCase()
         if (ext === "gif" || ext === "png" || ext === "PNG" || ext === "jpeg" || ext === "jpg") {
             var reader = new FileReader();
