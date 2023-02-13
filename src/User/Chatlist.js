@@ -6,7 +6,7 @@ import Messagefilefilter from './Messagefilefilter';
 import $ from 'jquery';
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 const client = new W3CWebSocket('ws://127.0.0.1:8000');
- 
+
 function Chatlist() {
     const navigate = useNavigate();
     const LOGIN_USER = USER_DETAILS();
