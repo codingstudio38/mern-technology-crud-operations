@@ -18,7 +18,7 @@ function App() {
           <Route path='register' element={<Register />} />
           <Route path='/user' element={<Protected Component={Index} />}>
             <Route path='home' element={<Protected Component={Home} />} />
-            <Route path='edit' element={<Protected Component={Edituser} />} />
+            <Route path='edit/:rowid' element={<Protected Component={Edituser} />} />
             <Route path='users-post' element={<Protected Component={Userspost} />} />
             <Route path='chat-box' element={<Protected Component={Chatlist} />} />
           </Route>

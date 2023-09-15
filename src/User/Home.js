@@ -147,7 +147,7 @@ function Home() {
                                 </td>
                                 <td align='center'>{ChangeDate(item.created_at)}</td>
                                 <td align='center'>
-                                    <Link className="btn btn-primary btn-sn" to={"./../edit?id=" + item._id} style={{ marginRight: "10px" }}> Edit</Link>
+                                    <Link className="btn btn-primary btn-sn" to={`./../edit/${item._id}?id=${item._id}`} style={{ marginRight: "10px" }}> Edit</Link>
                                     <button onClick={() => deleteUser(item)} className='btn btn-danger btn-sn'>Delete</button>
                                 </td>
                             </tr>
