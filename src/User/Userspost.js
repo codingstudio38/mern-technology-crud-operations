@@ -81,6 +81,8 @@ function Userspost() {
         });
         result = await result.json()
         if (result.status === 200) {
+            setNewdata([]);
+            // console.log(result);
             setCurrentpage(result.list.page);
             setPostsperpage(result.list.limit);
             setAlltotal(result.list.totalDocs);
@@ -104,6 +106,7 @@ function Userspost() {
         }
     }
     async function changePage(page) {
+        setCurrentpage(page);
         getdata(page, postsperpage);
     }
 
@@ -192,8 +195,41 @@ function Userspost() {
 
     async function updateData() {
         console.clear();
-        console.log({ 'rowid': rowid, 'user': edituser, 'title': edittitle, 'type': edittype, 'content': editcontent });
-        alert('Updated');
+        // console.log({ 'rowid': rowid, 'user': edituser, 'title': edittitle, 'type': edittype, 'content': editcontent });
+        if (rowid == "") {
+            alert('Unknow error');
+            setShowedit(false);
+            getdata(1, 10);
+            return false;
+        }
+        if (edituser == "") {
+            alert('Please select user.'); return false;
+        }
+
+        const myform = new FormData();
+        myform.append('rowid', rowid);
+        myform.append('userid', edituser);
+        myform.append('title', edittitle);
+        myform.append('type', edittype);
+        myform.append('content', editcontent);
+        let result = await fetch(`${API_URL}/users/update-post`, {
+            method: 'POST',
+            body: myform,
+            headers: {
+                'authorization': LOGIN_USER.token,
+            }
+        });
+        result = await result.json();
+        console.clear();
+        // console.log(result);
+        if (result.status === 200) {
+            alert(result.message);
+            setShowedit(false);
+            getdata(1, 10);
+        } else {
+            alert(result.message);
+            console.error(result);
+        }
     }
 
     return (

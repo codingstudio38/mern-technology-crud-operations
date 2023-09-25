@@ -31,6 +31,11 @@ function Userheader() {
             if (window.confirm("Are you sure ?")) {
                 let result = await USER_LOGOUT(LOGIN_USER.token);
                 console.clear();
+                if (result.status == 401) {
+                    window.localStorage.clear();
+                    navigate('./../../');
+                    return false;
+                }
                 if (result.status === 200) {
                     window.localStorage.clear();
                     navigate('./../../');
