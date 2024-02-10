@@ -1,7 +1,7 @@
 import './../css/chat-box.css';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { API_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from './../Constant';
+import { API_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from '../Constant';
 import Messagefilefilter from './Messagefilefilter';
 import $ from 'jquery';
 // import { client } from './WebsocketController';
@@ -19,11 +19,8 @@ function Chatlist() {
     const [chatboxopen, setChatboxopen] = useState(false);
     const [chatlist, setChatlist] = useState([]);
     const [loginid, setLoginid] = useState(LOGIN_USER._id);
-    const [WSclient, setWSclient] = useState(null);
+    const [socket, setSocket] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
-    var [reconnectIn, setReconnectIn] = useState(0);
-    var [wsreadyState, setWsreadyState] = useState(0);
-
     useEffect(() => {
         document.title = "MERN Technology || User - Chat Box";
         REMOVE_LOCAL('activechatuser');
@@ -32,71 +29,84 @@ function Chatlist() {
             navigate('./../../');
             return;
         }
-        getUserlist("");
-        connectWebSocket();
-    }, []);
+        const connectWebSocket = () => {
 
-    const connectWebSocket = () => {
-        const WSclient = new w3cwebsocket('ws://127.0.0.1:8000');
-        WSclient.onopen = (e) => {
-            setWSclient(WSclient);
-            setWsreadyState(WSclient.readyState)
-            setIsConnected(true);
-            WSclient.send(JSON.stringify({
+            const client = new w3cwebsocket('ws://127.0.0.1:8000');
+            client.onopen = (e) => {
+                setIsConnected(true);
+                setSocket(client);
+                // var t = setInterval(function () {
+                //     if (client.readyState !== 1) {
+                //         clearInterval(t);
+                //         return;
+                //     } 
+                //     client.send('{type:"ping"}');
+                // }, 5000);
+                console.log('WebSocket Client Connected.');
+            }
+            client.onmessage = (message) => {
+                const dataFromServer = JSON.parse(message.data);
+                console.log(dataFromServer);
+                if (dataFromServer.type.code === 200) {
+                    onNewMessage(dataFromServer);
+                } else {
+                    onNewConnection(dataFromServer);
+                }
+            }
+            client.onerror = function (e) {
+                console.log("An error occured while connecting... ", e);
+            };
+            client.onclose = function (cl) {
+                setIsConnected(false);
+                console.log('echo-protocol Client Closed', cl);
+                setTimeout(connectWebSocket, 3000);
+                // let newclient = new w3cwebsocket('ws://127.0.0.1:8000');
+                // client = newclient;
+                // let wbRecon = setInterval(function () {
+                //     console.clear();
+                //     client.onopen = (opn) => {
+                //         console.log('WebSocket client trying to reconnect.', opn);
+                //     }
+                //     client.send(JSON.stringify({
+                //         type: { message: "new conection", code: 100 },
+                //         msg: "new user conected",
+                //         user: LOGIN_USER._id
+                //     }));
+                //     console.log('Sendding new ping');
+                //     console.log("readyState", client.readyState);
+                //     console.log('client', client);
+                //     if (client.readyState == 1) {
+                //         clearInterval(wbRecon);
+                //         return;
+                //     }
+                // }, 2000);
+            };
+        }
+        // Initial connection
+        connectWebSocket();
+
+        // Cleanup function
+        // return () => {
+        //     if (socket) {
+        //         socket.close();
+        //     }
+        // };
+        getUserlist("");
+        setTimeout(() => {
+            clientSend(JSON.stringify({
                 type: { message: "new conection", code: 100 },
                 msg: "new user conected",
                 user: LOGIN_USER._id
-            }));
-            console.log('WebSocket Client Connected.');
-        }
-        WSclient.onmessage = (message) => {
-            const dataFromServer = JSON.parse(message.data);
-            console.log(dataFromServer);
-            if (dataFromServer.type.code === 200) {
-                onNewMessage(dataFromServer);
-            } else {
-                onNewConnection(dataFromServer);
-            }
-        }
-        WSclient.onerror = function (e) {
-            console.log("An error occured while connecting... ", e);
-        };
-
-        WSclient.onclose = function (cl) {
-            setIsConnected(false);
-            console.warn('echo-protocol Client Closed! Trying to reconnect..');
-            setTimeout(connectWebSocket, 2000);
-            // console.log("WSclient.readyState", WSclient);
-            // console.log("WSclient.readyState", WSclient.readyState);
-            // setWsreadyState(1);
-            // let wbRecon = setInterval(function () {
-            //     if (wsreadyState == 1) {
-            //         clearInterval(wbRecon);
-            //         return true;
-            //     }
-            //     connectWebSocket();
-            //     setWsreadyState(reconnectIn++);
-            //     console.log('WebSocket client trying to reconnect.', reconnectIn);
-            // }, 2000);
-            // console.log('send ping', WSclient);
-        };
-    }
-
+            }))
+        }, 2000);
+    }, []);
+ 
     function clientSend(data) {
-        // if (!isConnected) { not required
-        //     setReconnectIn(1);
-        //     let wbRecon = setInterval(function () {
-        //         if (wsreadyState == 1) {
-        //             clearInterval(wbRecon);
-        //             return true;
-        //         }
-        //         connectWebSocket();
-        //         setReconnectIn(reconnectIn++);
-        //         console.log('WebSocket client trying to reconnect.', reconnectIn);
-        //     }, 2000);
-        // }
-        if (isConnected) {
-            WSclient.send(data);
+        console.log(socket);
+        if (socket != null) {
+            socket.send(data, (e) => {
+                console.log(e);
+            });
         }
     }
 

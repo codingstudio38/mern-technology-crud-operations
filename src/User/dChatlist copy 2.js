@@ -1,12 +1,12 @@
 import './../css/chat-box.css';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { API_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from './../Constant';
+import { API_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from '../Constant';
 import Messagefilefilter from './Messagefilefilter';
 import $ from 'jquery';
 // import { client } from './WebsocketController';
 import { w3cwebsocket } from "websocket";
-
+var client = new w3cwebsocket('ws://127.0.0.1:8000');
 function Chatlist() {
     const navigate = useNavigate();
     const LOGIN_USER = USER_DETAILS();
@@ -19,11 +19,6 @@ function Chatlist() {
     const [chatboxopen, setChatboxopen] = useState(false);
     const [chatlist, setChatlist] = useState([]);
     const [loginid, setLoginid] = useState(LOGIN_USER._id);
-    const [WSclient, setWSclient] = useState(null);
-    const [isConnected, setIsConnected] = useState(false);
-    var [reconnectIn, setReconnectIn] = useState(0);
-    var [wsreadyState, setWsreadyState] = useState(0);
-
     useEffect(() => {
         document.title = "MERN Technology || User - Chat Box";
         REMOVE_LOCAL('activechatuser');
@@ -33,23 +28,17 @@ function Chatlist() {
             return;
         }
         getUserlist("");
-        connectWebSocket();
-    }, []);
-
-    const connectWebSocket = () => {
-        const WSclient = new w3cwebsocket('ws://127.0.0.1:8000');
-        WSclient.onopen = (e) => {
-            setWSclient(WSclient);
-            setWsreadyState(WSclient.readyState)
-            setIsConnected(true);
-            WSclient.send(JSON.stringify({
-                type: { message: "new conection", code: 100 },
-                msg: "new user conected",
-                user: LOGIN_USER._id
-            }));
+        client.onopen = (e) => {
+            // var t = setInterval(function () {
+            //     if (client.readyState !== 1) {
+            //         clearInterval(t);
+            //         return;
+            //     } 
+            //     client.send('{type:"ping"}');
+            // }, 5000);
             console.log('WebSocket Client Connected.');
         }
-        WSclient.onmessage = (message) => {
+        client.onmessage = (message) => {
             const dataFromServer = JSON.parse(message.data);
             console.log(dataFromServer);
             if (dataFromServer.type.code === 200) {
@@ -58,46 +47,55 @@ function Chatlist() {
                 onNewConnection(dataFromServer);
             }
         }
-        WSclient.onerror = function (e) {
+        client.onerror = function (e) {
             console.log("An error occured while connecting... ", e);
         };
-
-        WSclient.onclose = function (cl) {
-            setIsConnected(false);
-            console.warn('echo-protocol Client Closed! Trying to reconnect..');
-            setTimeout(connectWebSocket, 2000);
-            // console.log("WSclient.readyState", WSclient);
-            // console.log("WSclient.readyState", WSclient.readyState);
-            // setWsreadyState(1);
-            // let wbRecon = setInterval(function () {
-            //     if (wsreadyState == 1) {
-            //         clearInterval(wbRecon);
-            //         return true;
-            //     }
-            //     connectWebSocket();
-            //     setWsreadyState(reconnectIn++);
-            //     console.log('WebSocket client trying to reconnect.', reconnectIn);
-            // }, 2000);
-            // console.log('send ping', WSclient);
+        client.onclose = function (cl) {
+            console.log('echo-protocol Client Closed', cl);
+            let newclient = new w3cwebsocket('ws://127.0.0.1:8000');
+            client = newclient;
+            let wbRecon = setInterval(function () {
+                client.onopen = (opn) => {
+                    console.log('WebSocket client trying to reconnect.');
+                }
+                client.send(JSON.stringify({
+                    type: { message: "new conection", code: 100 },
+                    msg: "new user conected",
+                    user: LOGIN_USER._id
+                }));
+                console.log('Sendding new ping');
+                console.log(client.readyState);
+                console.log('client', client);
+                if (client.readyState == 1) {
+                    clearInterval(wbRecon);
+                    return;
+                }
+            }, 2000);
+            // client.onopen = (re) => {
+            //     console.log('client.onopen', re);
+            // }client.readyState
+            // client.send(JSON.stringify({
+            //     type: { message: "new conection", code: 100 },
+            //     msg: "new user conected",
+            //     user: LOGIN_USER._id
+            // }));
+            // console.log('send ping', client.readyState);
+            // console.log('console.log(client)', client);
         };
-    }
+
+        setTimeout(() => {
+            clientSend(JSON.stringify({
+                type: { message: "new conection", code: 100 },
+                msg: "new user conected",
+                user: LOGIN_USER._id
+            }))
+        }, 1000);
+    }, []);
 
     function clientSend(data) {
-        // if (!isConnected) { not required
-        //     setReconnectIn(1);
-        //     let wbRecon = setInterval(function () {
-        //         if (wsreadyState == 1) {
-        //             clearInterval(wbRecon);
-        //             return true;
-        //         }
-        //         connectWebSocket();
-        //         setReconnectIn(reconnectIn++);
-        //         console.log('WebSocket client trying to reconnect.', reconnectIn);
-        //     }, 2000);
-        // }
-        if (isConnected) {
-            WSclient.send(data);
-        }
+        client.send(data, (e) => {
+            console.log(e);
+        });
     }
 
 
@@ -294,6 +292,7 @@ function Chatlist() {
             onNewMessageSound();
             if (data.type.code == 200) {
                 let off = document.getElementById(`off_${data.user}`);
+                console.log(off);
                 if (off != null && off != undefined) {
                     off.style.display = "none";
                 }
