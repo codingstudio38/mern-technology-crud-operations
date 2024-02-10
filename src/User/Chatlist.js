@@ -61,11 +61,12 @@ function Chatlist() {
         WSclient.onerror = function (e) {
             console.log("An error occured while connecting... ", e);
         };
-
+        setReconnectIn(1);
         WSclient.onclose = function (cl) {
             setIsConnected(false);
-            console.warn('echo-protocol Client Closed! Trying to reconnect..');
-            setTimeout(connectWebSocket, 2000);
+            setTimeout(connectWebSocket, 1000);
+            setReconnectIn(reconnectIn++);
+            console.warn('echo-protocol Client Closed! Trying to reconnect..', reconnectIn);
             // console.log("WSclient.readyState", WSclient);
             // console.log("WSclient.readyState", WSclient.readyState);
             // setWsreadyState(1);
