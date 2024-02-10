@@ -1,60 +1,56 @@
 import { w3cwebsocket } from "websocket";
+import { useState, useEffect } from 'react';
 let client = new w3cwebsocket('ws://127.0.0.1:8000');
-const connectWebSocket = () => {
-    const WSclient = new w3cwebsocket('ws://127.0.0.1:8000');
-    WSclient.onopen = (e) => {
-        setWSclient(WSclient);
-        setWsreadyState(WSclient.readyState)
-        setIsConnected(true);
-        WSclient.send(JSON.stringify({
-            type: { message: "new conection", code: 100 },
-            msg: "new user conected",
-            user: LOGIN_USER._id
-        }), (e) => {
-            console.log(e);
-        });
-        // var t = setInterval(function () {
-        //     if (client.readyState !== 1) {
-        //         clearInterval(t);
-        //         return;
-        //     } 
-        //     client.send('{type:"ping"}');
-        // }, 5000);
-        console.log('WebSocket Client Connected.');
-    }
-    WSclient.onmessage = (message) => {
-        const dataFromServer = JSON.parse(message.data);
-        console.log(dataFromServer);
-        if (dataFromServer.type.code === 200) {
-            onNewMessage(dataFromServer);
-        } else {
-            onNewConnection(dataFromServer);
+let MyWSclient = null;
+function WebsocketController(prop) {
+    const [WSclient, setWSclient] = useState(null);
+    const [isConnected, setIsConnected] = useState(false);
+    var [reconnectIn, setReconnectIn] = useState(0);
+    // var [wsreadyState, setWsreadyState] = useState(0);
+    useEffect(() => {
+        if (prop.RunWS) {
+            connectWebSocket();
         }
-    }
-    WSclient.onerror = function (e) {
-        console.log("An error occured while connecting... ", e);
-    };
+    }, []);
+    const connectWebSocket = () => {
+        const _WSclient = new w3cwebsocket('ws://127.0.0.1:8000');
+        if (isConnected) {
+            setReconnectIn(0);
+        }
+        _WSclient.onopen = (e) => {
+            prop.ponopen(e);
+            setWSclient(_WSclient);
+            MyWSclient = _WSclient;
+            // setWsreadyState(_WSclient.readyState)
+            setIsConnected(true);
+            console.warn('WebSocket Client Connected.');
+        }
+        _WSclient.onmessage = (message) => {
+            prop.ponmessage(message);
+        }
+        _WSclient.onerror = function (e) {
+            console.log("An error occured while connecting... ");
+            prop.ponerror(e);
+        };
 
-    WSclient.onclose = function (cl) {
-        setIsConnected(false);
-        console.warn('echo-protocol Client Closed!');
-        setTimeout(connectWebSocket, 2000);
-        // console.log("WSclient.readyState", WSclient);
-        // console.log("WSclient.readyState", WSclient.readyState);
-        // setWsreadyState(1);
-        // let wbRecon = setInterval(function () {
-        //     if (wsreadyState == 1) {
-        //         clearInterval(wbRecon);
-        //         return true;
-        //     }
-        //     connectWebSocket();
-        //     setWsreadyState(reconnectIn++);
-        //     console.log('WebSocket client trying to reconnect.', reconnectIn);
-        // }, 2000);
-        // console.log('send ping', WSclient);
-    };
+        _WSclient.onclose = function (cl) {
+            prop.ponclose(cl);
+            setIsConnected(false);
+            setTimeout(connectWebSocket, 1000);
+            setReconnectIn(reconnectIn++);
+            console.warn('echo-protocol Client Closed! Trying to reconnect..', reconnectIn);
+        };
+    }
+
+    // WSclient.send(JSON.stringify({
+    //     type: { message: "new conection", code: 100 },
+    //     msg: "new user conected",
+    //     user: '1'
+    // })); 
+    // return (<></>)
 }
-export { client };
+
+export { client, WebsocketController, MyWSclient };
 
 
 

@@ -1,10 +1,10 @@
 import './../css/chat-box.css';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { API_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from './../Constant';
+import { API_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from '../Constant';
 import Messagefilefilter from './Messagefilefilter';
 import $ from 'jquery';
-import { client, WebsocketController, MyWSclient } from './WebsocketController';
+// import { client } from './WebsocketController';
 import { w3cwebsocket } from "websocket";
 
 function Chatlist() {
@@ -24,7 +24,6 @@ function Chatlist() {
     var [reconnectIn, setReconnectIn] = useState(0);
     var [wsreadyState, setWsreadyState] = useState(0);
 
-
     useEffect(() => {
         document.title = "MERN Technology || User - Chat Box";
         REMOVE_LOCAL('activechatuser');
@@ -34,43 +33,75 @@ function Chatlist() {
             return;
         }
         getUserlist("");
-
-        // console.log(WebsocketController({ 'onopen': WSonopen, 'onmessage': WSonmessage, 'onerror': WSonerror, 'onclose': WSonclose }));
+        connectWebSocket();
     }, []);
 
-    function WSonopen(e) {
-        setTimeout(() => {
-            if (MyWSclient != null) {
-                clientSend(JSON.stringify({
-                    type: { message: "new conection", code: 100 },
-                    msg: "new user conected",
-                    user: LOGIN_USER._id
-                }))
-            }
-        }, 1000)
-
-    }
-    function WSonmessage(e) {
-        const dataFromServer = JSON.parse(e.data);
-        // console.log(dataFromServer);
-        if (dataFromServer.type.code === 200) {
-            onNewMessage(dataFromServer);
-        } else {
-            onNewConnection(dataFromServer);
+    const connectWebSocket = () => {
+        const WSclient = new w3cwebsocket('ws://127.0.0.1:8000');
+        WSclient.onopen = (e) => {
+            setWSclient(WSclient);
+            setWsreadyState(WSclient.readyState)
+            setIsConnected(true);
+            WSclient.send(JSON.stringify({
+                type: { message: "new conection", code: 100 },
+                msg: "new user conected",
+                user: LOGIN_USER._id
+            }));
+            console.log('WebSocket Client Connected.');
         }
-    }
-    function WSonerror(e) {
-        console.log(e);
-    }
-    function WSonclose(e) {
-        console.log(e);
+        WSclient.onmessage = (message) => {
+            const dataFromServer = JSON.parse(message.data);
+            console.log(dataFromServer);
+            if (dataFromServer.type.code === 200) {
+                onNewMessage(dataFromServer);
+            } else {
+                onNewConnection(dataFromServer);
+            }
+        }
+        WSclient.onerror = function (e) {
+            console.log("An error occured while connecting... ", e);
+        };
+        setReconnectIn(1);
+        WSclient.onclose = function (cl) {
+            setIsConnected(false);
+            setTimeout(connectWebSocket, 1000);
+            setReconnectIn(reconnectIn++);
+            console.warn('echo-protocol Client Closed! Trying to reconnect..', reconnectIn);
+            // console.log("WSclient.readyState", WSclient);
+            // console.log("WSclient.readyState", WSclient.readyState);
+            // setWsreadyState(1);
+            // let wbRecon = setInterval(function () {
+            //     if (wsreadyState == 1) {
+            //         clearInterval(wbRecon);
+            //         return true;
+            //     }
+            //     connectWebSocket();
+            //     setWsreadyState(reconnectIn++);
+            //     console.log('WebSocket client trying to reconnect.', reconnectIn);
+            // }, 2000);
+            // console.log('send ping', WSclient);
+        };
     }
 
     function clientSend(data) {
-        if (MyWSclient != null) {
-            MyWSclient.send(data);
+        // if (!isConnected) { not required
+        //     setReconnectIn(1);
+        //     let wbRecon = setInterval(function () {
+        //         if (wsreadyState == 1) {
+        //             clearInterval(wbRecon);
+        //             return true;
+        //         }
+        //         connectWebSocket();
+        //         setReconnectIn(reconnectIn++);
+        //         console.log('WebSocket client trying to reconnect.', reconnectIn);
+        //     }, 2000);
+        // }
+        if (isConnected) {
+            WSclient.send(data);
         }
     }
+
+
 
     const [message, setMessage] = useState("");
     const [messagefile, setMessagefile] = useState("");
@@ -349,10 +380,12 @@ function Chatlist() {
         const audio = new Audio("http://localhost:3000/sound/Messenger_Notification.mp3");
         audio.play();
     }
+    function onNewConnectionSound() {
+        const audio = new Audio("http://localhost:3000/sound/new_connections.mp3");
+        audio.play();
+    }
     return (
-
         <div>
-            <WebsocketController ponopen={WSonopen} ponmessage={WSonmessage} ponerror={WSonerror} ponclose={WSonclose} RunWS={true} />
             <div className="container-chat container clearfix">
                 <h2 style={{ "textAlign": "center", "textDecoration": "underline" }}>React JS Live Chat Box</h2>
                 <div className="row" style={{ "marginBottom": "30px" }}>
