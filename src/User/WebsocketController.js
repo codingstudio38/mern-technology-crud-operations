@@ -1,6 +1,6 @@
 import { w3cwebsocket } from "websocket";
 import { useState, useEffect } from 'react';
-let client = new w3cwebsocket('ws://127.0.0.1:8000');
+// let client = new w3cwebsocket('ws://127.0.0.1:8000');
 let MyWSclient = null;
 function WebsocketController(prop) {
     const [WSclient, setWSclient] = useState(null);
@@ -50,7 +50,7 @@ function WebsocketController(prop) {
     // return (<></>)
 }
 
-export { client, WebsocketController, MyWSclient };
+export { WebsocketController, MyWSclient };
 
 
 

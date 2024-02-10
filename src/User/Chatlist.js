@@ -4,8 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { API_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from './../Constant';
 import Messagefilefilter from './Messagefilefilter';
 import $ from 'jquery';
-import { client, WebsocketController, MyWSclient } from './WebsocketController';
-import { w3cwebsocket } from "websocket";
+import { WebsocketController, MyWSclient } from './WebsocketController';
+// import { w3cwebsocket } from "websocket";
 
 function Chatlist() {
     const navigate = useNavigate();
