@@ -1,14 +1,16 @@
 import './../css/chat-box.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from './../Constant';
 import Messagefilefilter from './Messagefilefilter';
 import $ from 'jquery';
-import { WebsocketController, MyWSclient } from './WebsocketController';
+import { WebsocketController } from './WebsocketController';
 // import { w3cwebsocket } from "websocket";
 
 function Chatlist() {
     const navigate = useNavigate();
+    const [message, setMessage] = useState("");
+    const [messagefile, setMessagefile] = useState("");
     const LOGIN_USER = USER_DETAILS();
     const [list, setList] = useState([]);
     const [searchkey, setSearchkey] = useState("");
@@ -34,30 +36,33 @@ function Chatlist() {
             return;
         }
         getUserlist("");
+        setTimeout(() => {
+            WSclient_()
+        }, 2000)
 
         // console.log(WebsocketController({ 'onopen': WSonopen, 'onmessage': WSonmessage, 'onerror': WSonerror, 'onclose': WSonclose }));
     }, []);
 
+    ////////////////////for WebsocketController start////////////////////
+    ////////////////////for WebsocketController start////////////////////
+    ////////////////////for WebsocketController start////////////////////
+    ////////////////////for WebsocketController start////////////////////
+    ////////////////////for WebsocketController start////////////////////
     function WSonopen(e) {
         setTimeout(() => {
-            if (MyWSclient != null) {
-                clientSend(JSON.stringify({
-                    type: { message: "new conection", code: 100 },
-                    msg: "new user conected",
-                    user: LOGIN_USER._id
-                }))
-            }
+            clientSend(JSON.stringify({
+                type: { message: "new conection", code: 100 },
+                msg: "new user conected",
+                user: LOGIN_USER._id
+            }))
         }, 1000)
 
     }
+
     function WSonmessage(e) {
-        // const dataFromServer = JSON.parse(e.data);
-        // console.log(e.data.wbActiveUser);
         const dataFromServer = JSON.parse(e.data);
-        // console.log(dataFromServer.wbActiveUser)
         if (dataFromServer.type == 'utf8') {
             let dataWS = JSON.parse(dataFromServer.utf8Data);
-            // console.log(dataWS);
             if (dataWS.type.code === 200) {
                 onNewMessage(dataWS);
             } else if (dataWS.type.code === 100) {
@@ -66,21 +71,50 @@ function Chatlist() {
         }
 
     }
+
     function WSonerror(e) {
         console.log(e);
     }
+
     function WSonclose(e) {
         console.log(e);
     }
 
-    function clientSend(data) {
-        if (MyWSclient != null) {
-            MyWSclient.send(data);
+    const childRef = useRef(null);
+    function CloseWSClient() {
+        // WSclient_().close();
+        if (childRef.current) {
+            childRef.current.CloseWSClientFn();
         }
     }
 
-    const [message, setMessage] = useState("");
-    const [messagefile, setMessagefile] = useState("");
+    const childDataSendRef = useRef(null);
+    function clientSend(data) {
+        if (childDataSendRef.current) {
+            childDataSendRef.current.WSsendFn(data);
+        }
+    }
+
+    const _WSclient = useRef(null);
+    function WSclient_() {
+        if (_WSclient.current) {
+            return _WSclient.current.MyWSclient();
+        } else {
+            return null;
+        }
+    }
+    ////////////////////for WebsocketController end////////////////////
+    ////////////////////for WebsocketController end////////////////////
+    ////////////////////for WebsocketController end////////////////////
+    ////////////////////for WebsocketController end////////////////////
+    ////////////////////for WebsocketController end////////////////////
+
+
+
+
+
+
+
     async function SendChat() {
         let chatuser_datais = GET_LOCAL('activechatuser');
         if (!chatuser_datais) {
@@ -190,6 +224,7 @@ function Chatlist() {
             }
         });
         result = await result.json();
+        // console.log(result);
         if (result.status === 200) {
             let letarray = result.data.filter((item) => {
                 return item._id !== LOGIN_USER._id;
@@ -356,10 +391,10 @@ function Chatlist() {
         const audio = new Audio("http://localhost:3000/sound/Messenger_Notification.mp3");
         audio.play();
     }
-    return (
 
+    return (
         <div>
-            <WebsocketController ponopen={WSonopen} ponmessage={WSonmessage} ponerror={WSonerror} ponclose={WSonclose} RunWS={true} />
+            <WebsocketController ponopen={WSonopen} ponmessage={WSonmessage} ponerror={WSonerror} ponclose={WSonclose} RunWS={true} ref={[childRef, childDataSendRef, _WSclient]} />
             <div className="container-chat container clearfix">
                 <h2 style={{ "textAlign": "center", "textDecoration": "underline" }}>React JS Live Chat Box</h2>
                 <div className="row" style={{ "marginBottom": "30px" }}>
@@ -539,6 +574,7 @@ function Chatlist() {
                                     <label className="fa fa-file-image-o" htmlFor="IMGPhoto"></label>
                                     <input id="IMGPhoto" type="file" accept="image/png, image/gif, image/jpeg,.xlsx,.xls,.doc, .docx,.ppt, .pptx,.txt,.pdf" style={{ display: "none" }} onChange={(e) => setIMGPhoto(e)} />
                                     <button type='button' onClick={() => SendChat()}>Send</button>
+                                    <button type='button' onClick={() => CloseWSClient()}>WS Close</button>
                                 </form>
                             </div>
                         </div>

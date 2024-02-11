@@ -95,7 +95,7 @@ function Edituser() {
             } else {
                 setDtndisable(false);
                 alert(result.message);
-                navigate('./../home');
+                navigate('./../../home');
             }
         } else {
             setDtndisable(false);
