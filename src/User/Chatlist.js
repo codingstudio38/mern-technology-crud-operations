@@ -19,10 +19,10 @@ function Chatlist() {
     const [chatboxopen, setChatboxopen] = useState(false);
     const [chatlist, setChatlist] = useState([]);
     const [loginid, setLoginid] = useState(LOGIN_USER._id);
-    const [WSclient, setWSclient] = useState(null);
-    const [isConnected, setIsConnected] = useState(false);
-    var [reconnectIn, setReconnectIn] = useState(0);
-    var [wsreadyState, setWsreadyState] = useState(0);
+    // const [WSclient, setWSclient] = useState(null);
+    // const [isConnected, setIsConnected] = useState(false);
+    // var [reconnectIn, setReconnectIn] = useState(0);
+    // var [wsreadyState, setWsreadyState] = useState(0);
 
 
     useEffect(() => {
@@ -51,13 +51,20 @@ function Chatlist() {
 
     }
     function WSonmessage(e) {
+        // const dataFromServer = JSON.parse(e.data);
+        // console.log(e.data.wbActiveUser);
         const dataFromServer = JSON.parse(e.data);
-        // console.log(dataFromServer);
-        if (dataFromServer.type.code === 200) {
-            onNewMessage(dataFromServer);
-        } else {
-            onNewConnection(dataFromServer);
+        // console.log(dataFromServer.wbActiveUser)
+        if (dataFromServer.type == 'utf8') {
+            let dataWS = JSON.parse(dataFromServer.utf8Data);
+            // console.log(dataWS);
+            if (dataWS.type.code === 200) {
+                onNewMessage(dataWS);
+            } else if (dataWS.type.code === 100) {
+                onNewConnection(dataWS);
+            }
         }
+
     }
     function WSonerror(e) {
         console.log(e);
