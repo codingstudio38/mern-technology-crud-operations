@@ -54,7 +54,8 @@ function Chatlist() {
                 type: { message: "new conection", code: 100 },
                 msg: "new user conected",
                 user: LOGIN_USER._id
-            }))
+            }));
+            UpdateUserWeStatus(LOGIN_USER._id, 1);
         }, 1000)
 
     }
@@ -111,7 +112,24 @@ function Chatlist() {
 
 
 
-
+    async function UpdateUserWeStatus(userid, status) {
+        const myform = new FormData();
+        myform.append('userid', userid);
+        myform.append('status', status);
+        let result = await fetch(`${API_URL}/update-user-wsstatus`, {
+            method: 'POST',
+            body: myform,
+            headers: {
+                'authorization': LOGIN_USER.token,
+            }
+        });
+        result = await result.json();
+        if (result.status == 200) {
+            console.log(result.message);
+        } else {
+            console.error(result.message);
+        }
+    }
 
 
 
@@ -229,6 +247,7 @@ function Chatlist() {
             let letarray = result.data.filter((item) => {
                 return item._id !== LOGIN_USER._id;
             });
+            // console.log(letarray);
             setList(letarray);
         } else {
             alert(result.message);
