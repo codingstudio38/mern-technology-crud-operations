@@ -129,7 +129,7 @@ function Chatlist() {
             method: 'POST',
             body: myform,
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();
@@ -159,7 +159,7 @@ function Chatlist() {
         let result = await fetch(`${API_URL}/find-chat?chatid=${id}&from_user=${LOGIN_USER._id}&to_user=${to_user}`, {
             method: 'GET',
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();
@@ -210,7 +210,7 @@ function Chatlist() {
         let result = await fetch(`${API_URL}/users-chat-list?name=${key}`, {
             method: 'GET',
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();
@@ -240,7 +240,7 @@ function Chatlist() {
         let result = await fetch(`${API_URL}/current-chat-user?from_user=${LOGIN_USER._id}&to_user=${id}`, {
             method: 'GET',
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();
@@ -258,7 +258,7 @@ function Chatlist() {
         let result = await fetch(`${API_URL}/chat-list?from_user=${LOGIN_USER._id}&to_user=${id}`, {
             method: 'GET',
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();

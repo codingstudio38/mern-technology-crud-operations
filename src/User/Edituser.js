@@ -39,7 +39,7 @@ function Edituser() {
         let result = await fetch(`${API_URL}/user?id=${user}`, {
             method: 'GET',
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();
@@ -74,14 +74,14 @@ function Edituser() {
             method: 'PUT',
             body: myform,
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();
         console.clear();
         if (result.status === 200) {
             if (userid === LOGIN_USER._id) {
-                let result_log = await USER_LOGOUT(LOGIN_USER.token);
+                let result_log = await USER_LOGOUT(`Bearer ${LOGIN_USER.token}`);
                 console.clear();
                 if (result_log.status === 200) {
                     alert("Your profile has been successfully updated.");

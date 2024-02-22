@@ -31,7 +31,7 @@ function Home() {
         let result = await fetch(`${API_URL}/users-list?page=${page}&size=${size}`, {
             method: 'GET',
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json()
@@ -82,7 +82,7 @@ function Home() {
         let result = await fetch(`${API_URL}/user?id=${item._id}`, {
             method: 'DELETE',
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();

@@ -56,7 +56,7 @@ function Userspost() {
         let result = await fetch(`${API_URL}/all-users`, {
             method: 'GET',
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json()
@@ -76,7 +76,7 @@ function Userspost() {
         let result = await fetch(`${API_URL}/users/post-list?page=${page}&size=${size}`, {
             method: 'GET',
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json()
@@ -133,7 +133,7 @@ function Userspost() {
             method: 'POST',
             body: myform,
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();
@@ -153,7 +153,7 @@ function Userspost() {
         let result = await fetch(`${API_URL}/users/post-byid/${item._id}`, {
             method: 'GET',
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();
@@ -178,7 +178,7 @@ function Userspost() {
             let result = await fetch(`${API_URL}/users/delete-post-byid/${item._id}`, {
                 method: 'GET',
                 headers: {
-                    'authorization': LOGIN_USER.token,
+                    'authorization': `Bearer ${LOGIN_USER.token}`,
                 }
             });
             result = await result.json();
@@ -216,7 +216,7 @@ function Userspost() {
             method: 'POST',
             body: myform,
             headers: {
-                'authorization': LOGIN_USER.token,
+                'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
         result = await result.json();

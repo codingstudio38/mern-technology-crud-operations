@@ -29,7 +29,7 @@ function Userheader() {
     async function logout() {
         if (!LOGIN_USER === false) {
             if (window.confirm("Are you sure ?")) {
-                let result = await USER_LOGOUT(LOGIN_USER.token);
+                let result = await USER_LOGOUT(`Bearer ${LOGIN_USER.token}`);
                 console.clear();
                 if (result.status == 401) {
                     window.localStorage.clear();
