@@ -21,6 +21,7 @@ function Chatlist() {
     const [chatboxopen, setChatboxopen] = useState(false);
     const [chatlist, setChatlist] = useState([]);
     const [loginid, setLoginid] = useState(LOGIN_USER._id);
+    const [typinglabel, setTypinglabel] = useState(0);
     // const [WSclient, setWSclient] = useState(null);
     // const [isConnected, setIsConnected] = useState(false);
     // var [reconnectIn, setReconnectIn] = useState(0);
@@ -64,10 +65,12 @@ function Chatlist() {
         const dataFromServer = JSON.parse(e.data);
         if (dataFromServer.type == 'utf8') {
             let dataWS = JSON.parse(dataFromServer.utf8Data);
-            if (dataWS.type.code === 200) {
+            if (dataWS.type.code === 200) {//for new massage
                 onNewMessage(dataWS);
-            } else if (dataWS.type.code === 100) {
+            } else if (dataWS.type.code === 100) {//for new connetion
                 onNewConnection(dataWS);
+            } else if (dataWS.type.code === 300) {//for massage typeing
+                onKeyUpFN(dataWS);
             }
         }
 
@@ -110,8 +113,29 @@ function Chatlist() {
     ////////////////////for WebsocketController end////////////////////
     ////////////////////for WebsocketController end////////////////////
 
-
-
+    function onKeyUpFN(data) {
+        let chatuser_datais = GET_LOCAL('activechatuser');
+        chatuser_datais = chatuser_datais == false ? {} : JSON.parse(chatuser_datais);
+        console.clear();
+        console.log(data);
+        console.log(chatuser_datais);
+        if (data.user != undefined) {
+            if (chatuser_datais.chatuser != undefined) {
+                console.log(chatuser_datais.chatuser, data.user);
+                if (chatuser_datais.chatuser == data.user) {
+                    setTypinglabel(1);
+                }
+            }
+        }
+        console.log(typinglabel);
+    }
+    function TypeinggMassageFN() {
+        clientSend(JSON.stringify({
+            type: { message: "new conection", code: 300 },
+            msg: "typing",
+            user: LOGIN_USER._id
+        }));
+    }
     async function UpdateUserWeStatus(userid, status) {
         const myform = new FormData();
         myform.append('userid', userid);
@@ -589,7 +613,7 @@ function Chatlist() {
                             </div>
                             <div className="chat-message clearfix">
                                 <form id='message_form' method='post' encType='multipart/form-data'>
-                                    <textarea name="message-to-send" id="message-to-send" placeholder="Type your message" rows={3} defaultValue={""} onChange={(events) => { setMessage(events.target.value) }} />
+                                    <textarea name="message-to-send" id="message-to-send" placeholder="Type your message" rows={3} defaultValue={""} onChange={(events) => { setMessage(events.target.value) }} onKeyUp={() => TypeinggMassageFN()} />
                                     <label className="fa fa-file-image-o" htmlFor="IMGPhoto"></label>
                                     <input id="IMGPhoto" type="file" accept="image/png, image/gif, image/jpeg,.xlsx,.xls,.doc, .docx,.ppt, .pptx,.txt,.pdf" style={{ display: "none" }} onChange={(e) => setIMGPhoto(e)} />
                                     <button type='button' onClick={() => SendChat()}>Send</button>
