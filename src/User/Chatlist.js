@@ -21,7 +21,7 @@ function Chatlist() {
     const [chatboxopen, setChatboxopen] = useState(false);
     const [chatlist, setChatlist] = useState([]);
     const [loginid, setLoginid] = useState(LOGIN_USER._id);
-    const [typinglabel, setTypinglabel] = useState(0);
+    const [typinglabel, setTypinglabel] = useState(false);
     // const [WSclient, setWSclient] = useState(null);
     // const [isConnected, setIsConnected] = useState(false);
     // var [reconnectIn, setReconnectIn] = useState(0);
@@ -70,6 +70,8 @@ function Chatlist() {
             } else if (dataWS.type.code === 100) {//for new connetion
                 onNewConnection(dataWS);
             } else if (dataWS.type.code === 300) {//for massage typeing
+                onKeyDownFN(dataWS);
+            } else if (dataWS.type.code === 400) {//for massage typeing stop
                 onKeyUpFN(dataWS);
             }
         }
@@ -113,28 +115,54 @@ function Chatlist() {
     ////////////////////for WebsocketController end////////////////////
     ////////////////////for WebsocketController end////////////////////
 
-    function onKeyUpFN(data) {
+    function onKeyDownFN(data) {
         let chatuser_datais = GET_LOCAL('activechatuser');
         chatuser_datais = chatuser_datais == false ? {} : JSON.parse(chatuser_datais);
-        console.clear();
-        console.log(data);
-        console.log(chatuser_datais);
+        // console.clear();
+        // console.log(data);
+        // console.log(chatuser_datais);
         if (data.user != undefined) {
             if (chatuser_datais.chatuser != undefined) {
                 console.log(chatuser_datais.chatuser, data.user);
                 if (chatuser_datais.chatuser == data.user) {
-                    setTypinglabel(1);
+                    setTypinglabel(true);
+                    console.log(typinglabel, `${chatuser_datais.chatuser} user is typing..`);
                 }
             }
         }
-        console.log(typinglabel);
     }
-    function TypeinggMassageFN() {
-        clientSend(JSON.stringify({
-            type: { message: "new conection", code: 300 },
-            msg: "typing",
-            user: LOGIN_USER._id
-        }));
+    function onKeyUpFN(data) {
+        let chatuser_datais = GET_LOCAL('activechatuser');
+        chatuser_datais = chatuser_datais == false ? {} : JSON.parse(chatuser_datais);
+        // console.clear();
+        // console.log(data);
+        // console.log(chatuser_datais);
+        if (data.user != undefined) {
+            if (chatuser_datais.chatuser != undefined) {
+                console.log(chatuser_datais.chatuser, data.user);
+                if (chatuser_datais.chatuser == data.user) {
+                    setTimeout(() => {
+                        setTypinglabel(false);
+                    }, 1000)
+                    console.log(typinglabel, `${chatuser_datais.chatuser} user is typing stop.`);
+                }
+            }
+        }
+    }
+    function TypeinggMassageFN(type) {
+        if (type) {
+            clientSend(JSON.stringify({
+                type: { message: "user is typing..", code: 300 },
+                msg: "typing",
+                user: LOGIN_USER._id
+            }));
+        } else {
+            clientSend(JSON.stringify({
+                type: { message: "user typing stop.", code: 400 },
+                msg: "typing stop",
+                user: LOGIN_USER._id
+            }));
+        }
     }
     async function UpdateUserWeStatus(userid, status) {
         const myform = new FormData();
@@ -613,7 +641,12 @@ function Chatlist() {
                             </div>
                             <div className="chat-message clearfix">
                                 <form id='message_form' method='post' encType='multipart/form-data'>
-                                    <textarea name="message-to-send" id="message-to-send" placeholder="Type your message" rows={3} defaultValue={""} onChange={(events) => { setMessage(events.target.value) }} onKeyUp={() => TypeinggMassageFN()} />
+                                    {
+                                        typinglabel == true ? <><label>User is typing <img src="http://localhost:3000/typing-loader.gif" style={{ width: '19px' }} /></label></>
+                                            : <></>
+                                    }
+
+                                    <textarea name="message-to-send" id="message-to-send" placeholder="Type your message" rows={3} defaultValue={""} onChange={(events) => { setMessage(events.target.value) }} onKeyUp={() => TypeinggMassageFN(false)} onKeyDown={() => TypeinggMassageFN(true)} />
                                     <label className="fa fa-file-image-o" htmlFor="IMGPhoto"></label>
                                     <input id="IMGPhoto" type="file" accept="image/png, image/gif, image/jpeg,.xlsx,.xls,.doc, .docx,.ppt, .pptx,.txt,.pdf" style={{ display: "none" }} onChange={(e) => setIMGPhoto(e)} />
                                     <button type='button' onClick={() => SendChat()}>Send</button>
