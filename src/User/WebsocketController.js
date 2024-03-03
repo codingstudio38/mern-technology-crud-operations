@@ -1,5 +1,6 @@
 import { w3cwebsocket } from "websocket";
 import React, { useState, useEffect, forwardRef } from 'react';
+import { WS_URL, WEBSITE_PUBLIC } from './../Constant'
 // let client = new w3cwebsocket('ws://127.0.0.1:8000');
 const WebsocketController = React.forwardRef((props, ref) => {
 
@@ -25,7 +26,7 @@ const WebsocketController = React.forwardRef((props, ref) => {
         }
     }, []);
     const connectWebSocket = () => {
-        const _WSclient = new w3cwebsocket('ws://127.0.0.1:8000');
+        const _WSclient = new w3cwebsocket(WS_URL);
         if (isConnected) {
             setReconnectIn(0);
         }

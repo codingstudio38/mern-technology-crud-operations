@@ -3,7 +3,7 @@ import './../css/App.css';
 import { Pagination } from 'antd';
 import Table from 'react-bootstrap/Table';
 import { useNavigate, Link } from 'react-router-dom';
-import { API_URL, USER_DETAILS } from './../Constant';
+import { API_URL, USER_DETAILS, API_STORAGE_URL } from './../Constant';
 function Home() {
     const navigate = useNavigate();
     const LOGIN_USER = USER_DETAILS();
@@ -143,7 +143,7 @@ function Home() {
                                 <td align='center'>{item.email}</td>
                                 <td align='center'>{item.phone}</td>
                                 <td align='center'>
-                                    <img src={"http://localhost:5000/users-file/" + item.photo} width={"50px"} height={"60px"} />
+                                    <img src={API_STORAGE_URL + "/users-file/" + item.photo} width={"50px"} height={"60px"} />
                                 </td>
                                 <td align='center'>{ChangeDate(item.created_at)}</td>
                                 <td align='center'>

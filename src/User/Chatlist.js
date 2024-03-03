@@ -1,7 +1,7 @@
 import './../css/chat-box.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { API_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from './../Constant';
+import { API_URL, WEBSITE_PUBLIC, API_STORAGE_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from './../Constant';
 import Messagefilefilter from './Messagefilefilter';
 import $ from 'jquery';
 import { WebsocketController } from './WebsocketController';
@@ -16,7 +16,7 @@ function Chatlist() {
     const [searchkey, setSearchkey] = useState("");
     const [chatuser, setChatuser] = useState("");
     const [chatusername, setChatusername] = useState("Live Chat");
-    const [chatuserphoto, setChatuserphoto] = useState("http://localhost:3000/no-img.jpg");
+    const [chatuserphoto, setChatuserphoto] = useState(`${WEBSITE_PUBLIC}/no-img.jpg`);
     const [totalchat, setTotalchat] = useState("");
     const [chatboxopen, setChatboxopen] = useState(false);
     const [chatlist, setChatlist] = useState([]);
@@ -217,7 +217,7 @@ function Chatlist() {
             setMessage("");
             setMessagefile("");
             document.getElementById("message_form").reset();
-            setPhotosrc("http://localhost:3000/no-img.jpg");
+            setPhotosrc(`${WEBSITE_PUBLIC}/no-img.jpg`);
             setShowimgbox(false);
             FindChat(result.lastid);
             clientSend(JSON.stringify({
@@ -329,7 +329,7 @@ function Chatlist() {
         if (result.status === 200) {
             setChatuser(result.from_user_data._id);
             setChatusername(result.from_user_data.name);
-            setChatuserphoto(`http://localhost:5000/users-file/${result.from_user_data.photo}`);
+            setChatuserphoto(`${API_STORAGE_URL}/users-file/${result.from_user_data.photo}`);
             setTotalchat(result.total);
             GetActiveChatList(id);
         } else {
@@ -420,13 +420,13 @@ function Chatlist() {
     }
 
 
-    const [photosrc, setPhotosrc] = useState("http://localhost:3000/no-img.jpg");
+    const [photosrc, setPhotosrc] = useState(`${WEBSITE_PUBLIC}/no-img.jpg`);
     const [showimgbox, setShowimgbox] = useState(false);
     function setIMGPhoto(e) {
         if (e.target.files[0] === undefined) {
             setShowimgbox(false);
             setMessagefile("");
-            setPhotosrc("http://localhost:3000/no-img.jpg");
+            setPhotosrc(`${WEBSITE_PUBLIC}/no-img.jpg`);
             return;
         }
         var name = e.target.files[0].name;
@@ -439,13 +439,13 @@ function Chatlist() {
             };
             reader.readAsDataURL(e.target.files[0]);
         } else if (ext === "xlsx" || ext === "xls") {
-            setPhotosrc("http://localhost:3000/excel.png");
+            setPhotosrc(`${WEBSITE_PUBLIC}/excel.png`);
         } else if (ext === "pdf") {
-            setPhotosrc("http://localhost:3000/pdf.png");
+            setPhotosrc(`${WEBSITE_PUBLIC}/pdf.png`);
         } else if (ext === "docx" || ext === "doc") {
-            setPhotosrc("http://localhost:3000/doc.png");
+            setPhotosrc(`${WEBSITE_PUBLIC}/doc.png`);
         } else {
-            setPhotosrc("http://localhost:3000/Icon-doc.png");
+            setPhotosrc(`${WEBSITE_PUBLIC}/Icon-doc.png`);
         }
         setMessagefile(e.target.files[0]);
         setShowimgbox(true);
@@ -455,11 +455,11 @@ function Chatlist() {
     function closeImgdiv() {
         setShowimgbox(false);
         setMessagefile("");
-        setPhotosrc("http://localhost:3000/no-img.jpg");
+        setPhotosrc(`${WEBSITE_PUBLIC}/no-img.jpg`);
     }
 
     function onNewMessageSound() {
-        const audio = new Audio("http://localhost:3000/sound/Messenger_Notification.mp3");
+        const audio = new Audio(`${WEBSITE_PUBLIC}/sound/Messenger_Notification.mp3`);
         audio.play();
     }
 
@@ -484,7 +484,7 @@ function Chatlist() {
                                         list.map((item, index) =>
                                             <li className="clearfix custom" key={index} onClick={() => ActiveChatUser(`${item._id}`)}>
                                                 <div className="custom-in-dev">
-                                                    <img src={"http://localhost:5000/users-file/" + item.photo} width="45" height="45" alt={item.name} />
+                                                    <img src={API_STORAGE_URL + "/users-file/" + item.photo} width="45" height="45" alt={item.name} />
                                                     <div className="about">
                                                         <div className="name" >{item.name}</div>
                                                         <div className="status" >
@@ -642,7 +642,7 @@ function Chatlist() {
                             <div className="chat-message clearfix">
                                 <form id='message_form' method='post' encType='multipart/form-data'>
                                     {
-                                        typinglabel == true ? <><label>User is typing <img src="http://localhost:3000/typing-loader.gif" style={{ width: '19px' }} /></label></>
+                                        typinglabel == true ? <><label>User is typing <img src={`${WEBSITE_PUBLIC}/typing-loader.gif`} style={{ width: '19px' }} /></label></>
                                             : <></>
                                     }
 
