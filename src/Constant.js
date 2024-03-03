@@ -1,7 +1,7 @@
 export const API_URL = "http://localhost:5000";
 export const API_STORAGE_URL = "http://localhost:5000";
 export const WEBSITE_URL = "http://localhost:3000";
-export const WEBSITE_PUBLIC = "http://localhost:3000";
+export const WEBSITE_PUBLIC = "";
 export const WEBSITE_BASE_URL = "/";
 export const WS_URL = "ws://127.0.0.1:8000";
 export const USER_DETAILS = () => {
