@@ -9,10 +9,11 @@ import Index from './User/Index';
 import Userspost from './User/Userspost';
 import Edituser from './User/Edituser';
 import Chatlist from './User/Chatlist';
+import { WEBSITE_BASE_URL } from './Constant';
 function App() {
   return (
     <div>
-      <BrowserRouter>
+      <BrowserRouter basename={`${WEBSITE_BASE_URL}`}>
         <Routes>
           <Route index path='' element={<Login />} />
           <Route path='register' element={<Register />} />
