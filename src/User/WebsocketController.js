@@ -1,6 +1,6 @@
 import { w3cwebsocket } from "websocket";
 import React, { useState, useEffect, forwardRef } from 'react';
-import { WS_URL, WEBSITE_PUBLIC } from './../Constant'
+import { WS_URL, WEBSITE_PUBLIC, USER_DETAILS } from './../Constant'
 // let client = new w3cwebsocket('ws://127.0.0.1:8000');
 const WebsocketController = React.forwardRef((props, ref) => {
 
@@ -19,6 +19,7 @@ const WebsocketController = React.forwardRef((props, ref) => {
     const [WSclient, setWSclient] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
     var [reconnectIn, setReconnectIn] = useState(0);
+    const LOGIN_USER = USER_DETAILS();
     // var [wsreadyState, setWsreadyState] = useState(0);
     useEffect(() => {
         if (props.RunWS) {
@@ -26,7 +27,13 @@ const WebsocketController = React.forwardRef((props, ref) => {
         }
     }, []);
     const connectWebSocket = () => {
-        const _WSclient = new w3cwebsocket(WS_URL);
+        const _WSclient = new w3cwebsocket(`${WS_URL}?Authorization=${LOGIN_USER._id == false ? '' : LOGIN_USER._id}`
+            // , null, null, {
+            //     headers: {
+            //         Authorization: `${LOGIN_USER._id == false ? '' : LOGIN_USER._id}`
+            //     }
+            // }
+        );
         if (isConnected) {
             setReconnectIn(0);
         }

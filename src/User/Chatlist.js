@@ -22,12 +22,14 @@ function Chatlist() {
     const [chatlist, setChatlist] = useState([]);
     const [loginid, setLoginid] = useState(LOGIN_USER._id);
     const [typinglabel, setTypinglabel] = useState(false);
+    const [wsclientid, setWsclientid] = useState('');
+    var activewsclients = [];
+    var allusers = [];
+    // const [activewsclients, setActivewsclients] = useState([]);
     // const [WSclient, setWSclient] = useState(null);
     // const [isConnected, setIsConnected] = useState(false);
     // var [reconnectIn, setReconnectIn] = useState(0);
     // var [wsreadyState, setWsreadyState] = useState(0);
-
-
     useEffect(() => {
         document.title = "MERN Technology || User - Chat Box";
         REMOVE_LOCAL('activechatuser');
@@ -40,7 +42,9 @@ function Chatlist() {
         setTimeout(() => {
             WSclient_()
         }, 2000)
-
+        // setTimeout(() => {
+        //     WSclient_().close();
+        // }, 3000)
         // console.log(WebsocketController({ 'onopen': WSonopen, 'onmessage': WSonmessage, 'onerror': WSonerror, 'onclose': WSonclose }));
     }, []);
 
@@ -51,11 +55,11 @@ function Chatlist() {
     ////////////////////for WebsocketController start////////////////////
     function WSonopen(e) {
         setTimeout(() => {
-            clientSend(JSON.stringify({
-                type: { message: "new conection", code: 100 },
-                msg: "new user conected",
-                user: LOGIN_USER._id
-            }));
+            // clientSend(JSON.stringify({
+            //     type: { message: "new conection", code: 100 },
+            //     msg: "new user conected",
+            //     user: LOGIN_USER._id
+            // }));
             UpdateUserWeStatus(LOGIN_USER._id, 1);
         }, 1000)
 
@@ -67,12 +71,26 @@ function Chatlist() {
             let dataWS = JSON.parse(dataFromServer.utf8Data);
             if (dataWS.type.code === 200) {//for new massage
                 onNewMessage(dataWS);
-            } else if (dataWS.type.code === 100) {//for new connetion
-                onNewConnection(dataWS);
-            } else if (dataWS.type.code === 300) {//for massage typeing
+            }
+            //  else if (dataWS.type.code === 100) {//for new connetion
+            //     checkOnlineOrOfflineArr(dataWS);
+            //     // if (dataWS.user == LOGIN_USER._id) {
+            //     //     setWsclientid(dataFromServer.clientid);
+            //     // }
+            //     // console.log(dataWS, dataFromServer.clientid);
+            // } 
+            else if (dataWS.type.code === 300) {//for massage typeing
                 onKeyDownFN(dataWS);
             } else if (dataWS.type.code === 400) {//for massage typeing stop
                 onKeyUpFN(dataWS);
+            }
+        } else if (dataFromServer.type == 'datafromws') {
+            if (dataFromServer.code == 1000) {// new client connection
+                console.log('connected client', dataFromServer.clientid);
+                getNumberofActiveUser();
+            } else if (dataFromServer.code == 2000) {// client disconnection
+                console.log('disconnect client', dataFromServer.clientid);
+                getNumberofActiveUser();
             }
         }
 
@@ -88,7 +106,7 @@ function Chatlist() {
 
     const childRef = useRef(null);
     function CloseWSClient() {
-        // WSclient_().close();
+
         if (childRef.current) {
             childRef.current.CloseWSClientFn();
         }
@@ -183,6 +201,28 @@ function Chatlist() {
         }
     }
 
+    async function getNumberofActiveUser() {
+        const myform = new FormData();
+        myform.append('status', 1);
+        let result = await fetch(`${API_URL}/users/number-of-active-user`, {
+            method: 'POST',
+            body: myform,
+            headers: {
+                'authorization': `Bearer ${LOGIN_USER.token}`,
+            }
+        });
+        result = await result.json();
+        if (result.status == 200) {
+            // console.log(result);
+            // setActivewsclients();
+            activewsclients = [];
+            activewsclients = result.data;
+            // console.log(activewsclients);
+            checkOnlineOrOfflineArr();
+        } else {
+            console.error(result.message);
+        }
+    }
 
 
     async function SendChat() {
@@ -301,6 +341,8 @@ function Chatlist() {
             });
             // console.log(letarray);
             setList(letarray);
+            allusers = [];
+            allusers = letarray;
         } else {
             alert(result.message);
         }
@@ -310,11 +352,11 @@ function Chatlist() {
         getUserlist(k);
     }
     async function ActiveChatUser(id) {
-        clientSend(JSON.stringify({
-            type: { message: "new conection", code: 100 },
-            msg: "new user conected",
-            user: LOGIN_USER._id
-        }));
+        // clientSend(JSON.stringify({
+        //     type: { message: "new conection", code: 100 },
+        //     msg: "new user conected",
+        //     user: LOGIN_USER._id
+        // }));
         setChatuser(id);
         setChatboxopen(true);
         REMOVE_LOCAL('activechatuser');
@@ -381,7 +423,7 @@ function Chatlist() {
                     off.style.display = "none";
                 }
                 let on = document.getElementById(`on_${data.user}`);
-                if (on != null && off != undefined) {
+                if (on != null && on != undefined) {
                     on.style.display = "block";
                 }
 
@@ -394,21 +436,66 @@ function Chatlist() {
             }
         }
     }
-    function onNewConnection(data) {
-        console.log(`new conneciotn`);
-        // onNewConnectionSound();
-        if (data.user !== LOGIN_USER._id) {
-            if (data.type.code === 100) {
-                let off = document.getElementById(`off_${data.user}`);
-                if (off != null && off != undefined) {
-                    off.style.display = "none";
-                }
-                let on = document.getElementById(`on_${data.user}`);
-                if (on != null && off != undefined) {
-                    on.style.display = "block";
-                }
+    function checkOnlineOrOfflineArr(data) {
+        // console.log(activewsclients);
+        // console.log(allusers);
+        // setTimeout(() => { }, 1000);
+        allusers.forEach((item) => {
+            // console.log(item._id, checkuserId(item._id), $(`#on_${item._id}`));
+            if (checkuserId(item._id)) {
+                // let off = document.getElementById(`off_${item._id}`);
+                // if (off != null && off != undefined) {
+                //     off.style.display = "none";
+                // }
+                // console.log('off', off);
+                // let on = document.getElementById(`on_${item._id}`);
+                // if (on != null && on != undefined) {
+                //     on.style.display = "block";
+                // }
+                // console.log('on', on);
+                $(`#off_${item._id}`).css('display', 'none');
+                $(`#on_${item._id}`).css('display', 'block');
+            } else {
+                // let on = document.getElementById(`on_${item._id}`);
+                // if (on != null && on != undefined) {
+                //     on.style.display = "none";
+                // }
+                // // console.log('on', on);
+                // let off = document.getElementById(`off_${item._id}`);
+                // if (off != null && off != undefined) {
+                //     off.style.display = "block";
+                // }
+                // console.log('off', off);
+                $(`#on_${item._id}`).css('display', 'none');
+                $(`#off_${item._id}`).css('display', 'block');
             }
-        }
+        })
+
+
+        // console.log(`new conneciotn`);
+        // onNewConnectionSound();
+        // if (data.user !== LOGIN_USER._id) {
+        //     if (data.type.code === 100) {
+        //         let off = document.getElementById(`off_${data.user}`);
+        //         if (off != null && off != undefined) {
+        //             off.style.display = "none";
+        //         }
+        //         let on = document.getElementById(`on_${data.user}`);
+        //         if (on != null && off != undefined) {
+        //             on.style.display = "block";
+        //         }
+        //     }
+        // }
+    }
+
+    function checkuserId(id) {
+        let check = false;
+        activewsclients.forEach((item) => {
+            if (item._id == id) {
+                check = true;
+            }
+        })
+        return check;
     }
 
     function changeDate(d) {
@@ -468,6 +555,7 @@ function Chatlist() {
             <WebsocketController ponopen={WSonopen} ponmessage={WSonmessage} ponerror={WSonerror} ponclose={WSonclose} RunWS={true} ref={[childRef, childDataSendRef, _WSclient]} />
             <div className="container-chat container clearfix">
                 <h2 style={{ "textAlign": "center", "textDecoration": "underline" }}>React JS Live Chat Box</h2>
+                <h3>Ws id :- {wsclientid}, my id:-{LOGIN_USER._id}</h3>
                 <div className="row" style={{ "marginBottom": "30px" }}>
                     <div className="col-md-4" style={{ 'padding': '0px' }}>
                         <div className="people-list" id="people-list">
@@ -651,6 +739,8 @@ function Chatlist() {
                                     <input id="IMGPhoto" type="file" accept="image/png, image/gif, image/jpeg,.xlsx,.xls,.doc, .docx,.ppt, .pptx,.txt,.pdf" style={{ display: "none" }} onChange={(e) => setIMGPhoto(e)} />
                                     <button type='button' onClick={() => SendChat()}>Send</button>
                                     <button type='button' onClick={() => CloseWSClient()}>WS Close</button>
+                                    {/* <button type='button' onClick={() => checkuserId('id')}>Test</button> */}
+
                                 </form>
                             </div>
                         </div>
