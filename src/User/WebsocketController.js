@@ -68,7 +68,11 @@ const WebsocketController = React.forwardRef((props, ref) => {
 
     function CloseWSClientFn(reconnet) {
         reconnect = reconnet;
-        WSclient.close();
+        if (WSclient !== null) {
+            WSclient.close();
+        } else {
+            console.error('failed to send data!! ws client not connected.');
+        }
     }
 
     function WSsendFn(data) {
