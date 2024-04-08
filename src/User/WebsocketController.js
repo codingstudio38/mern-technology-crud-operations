@@ -2,6 +2,7 @@ import { w3cwebsocket } from "websocket";
 import React, { useState, useEffect, forwardRef } from 'react';
 import { WS_URL, WEBSITE_PUBLIC, USER_DETAILS } from './../Constant'
 // let client = new w3cwebsocket('ws://127.0.0.1:8000');
+var reconnect = true;
 const WebsocketController = React.forwardRef((props, ref) => {
 
     React.useImperativeHandle(ref[0], () => ({
@@ -19,6 +20,8 @@ const WebsocketController = React.forwardRef((props, ref) => {
     const [WSclient, setWSclient] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
     var [reconnectIn, setReconnectIn] = useState(0);
+    // var [reconnect, setReconnect] = useState(true);
+
     const LOGIN_USER = USER_DETAILS();
     // var [wsreadyState, setWsreadyState] = useState(0);
     useEffect(() => {
@@ -52,23 +55,27 @@ const WebsocketController = React.forwardRef((props, ref) => {
         };
 
         _WSclient.onclose = function (cl) {
-            props.ponclose(cl);
             setIsConnected(false);
-            setTimeout(connectWebSocket, 1000);
-            setReconnectIn(reconnectIn++);
-            console.warn('echo-protocol Client Closed! Trying to reconnect..', reconnectIn);
+            setWSclient(null);
+            if (reconnect) {
+                props.ponclose(cl);
+                setTimeout(connectWebSocket, 1000);
+                setReconnectIn(reconnectIn++);
+                console.warn('echo-protocol Client Closed! Trying to reconnect..', reconnectIn);
+            }
         };
     }
 
-    function CloseWSClientFn() {
-        alert();
+    function CloseWSClientFn(reconnet) {
+        reconnect = reconnet;
+        WSclient.close();
     }
 
     function WSsendFn(data) {
         if (WSclient !== null) {
             WSclient.send(data);
         } else {
-            console.error('failed to send data!');
+            console.error('failed to send data!! ws client not connected.');
         }
     }
 

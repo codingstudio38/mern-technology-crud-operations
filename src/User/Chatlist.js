@@ -23,6 +23,7 @@ function Chatlist() {
     const [loginid, setLoginid] = useState(LOGIN_USER._id);
     const [typinglabel, setTypinglabel] = useState(false);
     const [wsclientid, setWsclientid] = useState('');
+
     var activewsclients = [];
     var allusers = [];
     // const [activewsclients, setActivewsclients] = useState([]);
@@ -43,7 +44,7 @@ function Chatlist() {
             WSclient_()
         }, 2000)
         // setTimeout(() => {
-        //     WSclient_().close();
+        //     delete WSclient_();
         // }, 3000)
         // console.log(WebsocketController({ 'onopen': WSonopen, 'onmessage': WSonmessage, 'onerror': WSonerror, 'onclose': WSonclose }));
     }, []);
@@ -106,9 +107,8 @@ function Chatlist() {
 
     const childRef = useRef(null);
     function CloseWSClient() {
-
         if (childRef.current) {
-            childRef.current.CloseWSClientFn();
+            childRef.current.CloseWSClientFn(false);
         }
     }
 
@@ -555,7 +555,7 @@ function Chatlist() {
             <WebsocketController ponopen={WSonopen} ponmessage={WSonmessage} ponerror={WSonerror} ponclose={WSonclose} RunWS={true} ref={[childRef, childDataSendRef, _WSclient]} />
             <div className="container-chat container clearfix">
                 <h2 style={{ "textAlign": "center", "textDecoration": "underline" }}>React JS Live Chat Box</h2>
-                <h3>Ws id :- {wsclientid}, my id:-{LOGIN_USER._id}</h3>
+                <h3>Name :- {LOGIN_USER.name}, my id:-{LOGIN_USER._id}</h3>
                 <div className="row" style={{ "marginBottom": "30px" }}>
                     <div className="col-md-4" style={{ 'padding': '0px' }}>
                         <div className="people-list" id="people-list">
