@@ -429,6 +429,7 @@ function Chatlist() {
 
                 if (data.user == user_id && active == true) {
                     FindChat(data.message_id);
+                    UpdateReadStatus(data.message_id, 1);
                     //GetActiveChatList(data.user);
                 } else {
                     alert(`new message id ${data.message_id}`);
@@ -436,6 +437,27 @@ function Chatlist() {
             }
         }
     }
+
+    async function UpdateReadStatus(id, status) {
+        const myform = new FormData();
+        myform.append('status', status);
+        myform.append('objid', id);
+        let result = await fetch(`${API_URL}/update-read-status`, {
+            method: 'POST',
+            body: myform,
+            headers: {
+                'authorization': `Bearer ${LOGIN_USER.token}`,
+            }
+        });
+        result = await result.json();
+        if (result.status === 200) {
+            console.log(result.message);
+        } else {
+            alert(result.message);
+        }
+    }
+
+
     function checkOnlineOrOfflineArr(data) {
         // console.log(activewsclients);
         // console.log(allusers);
