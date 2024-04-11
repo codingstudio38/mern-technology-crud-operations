@@ -141,10 +141,10 @@ function Chatlist() {
         // console.log(chatuser_datais);
         if (data.user != undefined) {
             if (chatuser_datais.chatuser != undefined) {
-                console.log(chatuser_datais.chatuser, data.user);
+                // console.log(chatuser_datais.chatuser, data.user);
                 if (chatuser_datais.chatuser == data.user) {
                     setTypinglabel(true);
-                    console.log(typinglabel, `${chatuser_datais.chatuser} user is typing..`);
+                    // console.log(typinglabel, `${chatuser_datais.chatuser} user is typing..`);
                 }
             }
         }
@@ -162,7 +162,7 @@ function Chatlist() {
                     setTimeout(() => {
                         setTypinglabel(false);
                     }, 1000)
-                    console.log(typinglabel, `${chatuser_datais.chatuser} user is typing stop.`);
+                    // console.log(typinglabel, `${chatuser_datais.chatuser} user is typing stop.`);
                 }
             }
         }
@@ -339,6 +339,9 @@ function Chatlist() {
             let letarray = result.data.filter((item) => {
                 return item._id !== LOGIN_USER._id;
             });
+            letarray.forEach(user => {
+                getnoofunseenchat(user._id, LOGIN_USER._id);
+            });
             // console.log(letarray);
             setList(letarray);
             allusers = [];
@@ -469,15 +472,14 @@ function Chatlist() {
         });
         result = await result.json();
         if (result.status === 200) {
-            // console.log("from", result.total > 0 ? result.data.from_user : '');
-            // console.log("chat", result.total > 0 ? result.data.message : '');
-            // console.log("total", result.total);
             let total = result.total;
             let chat = result.total > 0 ? result.data.message : '';
-            $(`#unsceendiv_${from}`).html(
-                `<p id="unsceenp_${from}">${textlength(chat, 12)} </p>
+            if (total > 0) {
+                $(`#unsceendiv_${from}`).html(
+                    `<p id="unsceenp_${from}">${textlength(chat, 12)} </p>
                   <span id="unsceenspan_${from}" style="width: 60px;"class="btn btn-danger btn-sm">${total} New</span>`
-            );
+                );
+            }
         } else {
             alert(result.message);
         }
