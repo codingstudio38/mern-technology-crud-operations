@@ -283,7 +283,7 @@ function Chatlist() {
             }
         });
         result = await result.json();
-        console.clear();
+        // console.clear();
         if (result.status == 200) {
             setTotalchat((pre) => {
                 //return result.total;
@@ -374,6 +374,7 @@ function Chatlist() {
             setChatuserphoto(`${API_STORAGE_URL}/users-file/${result.from_user_data.photo}`);
             setTotalchat(result.total);
             GetActiveChatList(id);
+            $(`#unsceendiv_${id}`).html(``);
         } else {
             alert(result.message);
         }
@@ -411,11 +412,6 @@ function Chatlist() {
             active = false;
         }
         if (data.to_user == LOGIN_USER._id) {
-            //console.log("data ", data);
-            // console.log("data.user", data.user);
-            // console.log("data.to_user", data.to_user);
-            // console.log("LOGIN_USER._i", LOGIN_USER._id);
-            //console.log(`new message`);
             onNewMessageSound();
             if (data.type.code == 200) {
                 let off = document.getElementById(`off_${data.user}`);
@@ -429,19 +425,22 @@ function Chatlist() {
 
                 if (data.user == user_id && active == true) {
                     FindChat(data.message_id);
-                    UpdateReadStatus(data.message_id, 1);
-                    //GetActiveChatList(data.user);
+                    UpdateReadStatus(data.message_id, data.user, data.to_user, 1);
+
                 } else {
-                    alert(`new message id ${data.message_id}`);
+                    getnoofunseenchat(data.user, data.to_user);
+                    // alert(`new message id ${data.message_id}`);
                 }
             }
         }
     }
 
-    async function UpdateReadStatus(id, status) {
+    async function UpdateReadStatus(id, from, to, status) {
         const myform = new FormData();
         myform.append('status', status);
         myform.append('objid', id);
+        myform.append('from_id', from);
+        myform.append('to_id', to);
         let result = await fetch(`${API_URL}/update-read-status`, {
             method: 'POST',
             body: myform,
@@ -457,57 +456,57 @@ function Chatlist() {
         }
     }
 
+    async function getnoofunseenchat(from, to) {
+        const myform = new FormData();
+        myform.append('from_id', from);
+        myform.append('to_id', to);
+        let result = await fetch(`${API_URL}/get-no-of-unseen-chat`, {
+            method: 'POST',
+            body: myform,
+            headers: {
+                'authorization': `Bearer ${LOGIN_USER.token}`,
+            }
+        });
+        result = await result.json();
+        if (result.status === 200) {
+            // console.log("from", result.total > 0 ? result.data.from_user : '');
+            // console.log("chat", result.total > 0 ? result.data.message : '');
+            // console.log("total", result.total);
+            let total = result.total;
+            let chat = result.total > 0 ? result.data.message : '';
+            $(`#unsceendiv_${from}`).html(
+                `<p id="unsceenp_${from}">${textlength(chat, 12)} </p>
+                  <span id="unsceenspan_${from}" style="width: 60px;"class="btn btn-danger btn-sm">${total} New</span>`
+            );
+        } else {
+            alert(result.message);
+        }
+    }
+
+
+    function textlength(text, l) {
+        if (text == "" || text == null) {
+            return text;
+        } else if (text.length > l) {
+            return text.substring(0, l) + '...';
+        } else {
+            return text;
+        }
+    }
 
     function checkOnlineOrOfflineArr(data) {
         // console.log(activewsclients);
         // console.log(allusers);
-        // setTimeout(() => { }, 1000);
         allusers.forEach((item) => {
             // console.log(item._id, checkuserId(item._id), $(`#on_${item._id}`));
             if (checkuserId(item._id)) {
-                // let off = document.getElementById(`off_${item._id}`);
-                // if (off != null && off != undefined) {
-                //     off.style.display = "none";
-                // }
-                // console.log('off', off);
-                // let on = document.getElementById(`on_${item._id}`);
-                // if (on != null && on != undefined) {
-                //     on.style.display = "block";
-                // }
-                // console.log('on', on);
                 $(`#off_${item._id}`).css('display', 'none');
                 $(`#on_${item._id}`).css('display', 'block');
             } else {
-                // let on = document.getElementById(`on_${item._id}`);
-                // if (on != null && on != undefined) {
-                //     on.style.display = "none";
-                // }
-                // // console.log('on', on);
-                // let off = document.getElementById(`off_${item._id}`);
-                // if (off != null && off != undefined) {
-                //     off.style.display = "block";
-                // }
-                // console.log('off', off);
                 $(`#on_${item._id}`).css('display', 'none');
                 $(`#off_${item._id}`).css('display', 'block');
             }
         })
-
-
-        // console.log(`new conneciotn`);
-        // onNewConnectionSound();
-        // if (data.user !== LOGIN_USER._id) {
-        //     if (data.type.code === 100) {
-        //         let off = document.getElementById(`off_${data.user}`);
-        //         if (off != null && off != undefined) {
-        //             off.style.display = "none";
-        //         }
-        //         let on = document.getElementById(`on_${data.user}`);
-        //         if (on != null && off != undefined) {
-        //             on.style.display = "block";
-        //         }
-        //     }
-        // }
     }
 
     function checkuserId(id) {
@@ -600,6 +599,10 @@ function Chatlist() {
                                                         <div className="status" >
                                                             <div className='offline_div' id={"off_" + item._id} ><i className="fa fa-circle offline" /> offline</div>
                                                             <div className='online_div' id={"on_" + item._id} ><i className="fa fa-circle online" /> online</div>
+                                                        </div>
+                                                        <div id={'unsceendiv_' + item._id}>
+                                                            {/* <p id={'unsceenp_' + item._id} className='unsceenp'>hello</p>
+                                                            <span id={'unsceenspan_' + item._id} style={{ width: '60px' }} className="btn btn-danger btn-sm">3 New</span> */}
                                                         </div>
                                                     </div>
                                                 </div>
