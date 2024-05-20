@@ -86,7 +86,8 @@ function Userspost() {
             setCurrentpage(result.list.page);
             setPostsperpage(result.list.limit);
             setAlltotal(result.list.totalDocs);
-            setNewdata(result.list.docs);
+            // setNewdata(result.list.docs); 
+            setNewdata(result.newlist);
             setPagingcounter(result.list.pagingCounter);
             if (result.list.totalDocs <= 5) {
                 setLimitval([5]);
@@ -267,6 +268,7 @@ function Userspost() {
                         <th className='th-center'>Title</th>
                         <th className='th-center'>Type</th>
                         <th className='th-center'>Content</th>
+                        <th className='th-center'>Created Date</th>
                         <th className='th-center'>Action</th>
                     </tr>
                 </thead>
@@ -283,6 +285,7 @@ function Userspost() {
 
                                     </textarea>
                                 </td>
+                                <td align='center'>{item.created_at} / {item.updated_at}</td>
                                 <td align='center'>
                                     <button type='button' className='btn btn-warning btn-sm' onClick={() => EditRow(item)}>
                                         <i className="fa fa-pencil-square-o" aria-hidden="true"></i>
