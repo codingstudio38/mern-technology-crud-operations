@@ -86,8 +86,9 @@ function Userspost() {
             setCurrentpage(result.list.page);
             setPostsperpage(result.list.limit);
             setAlltotal(result.list.totalDocs);
-            // setNewdata(result.list.docs); 
-            setNewdata(result.newlist);
+            setNewdata(result.list.docs);
+            // console.log(result.newlist);
+            // setNewdata(result.newlist);
             setPagingcounter(result.list.pagingCounter);
             if (result.list.totalDocs <= 5) {
                 setLimitval([5]);
