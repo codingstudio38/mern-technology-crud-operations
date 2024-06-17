@@ -86,7 +86,7 @@ function Videogallery() {
             <h2 style={{ textAlign: "center" }}>Video Gallery</h2>
             <div className='row col-md-12'>
                 <div className='col-md-8'>
-                    {/* onClick={() => PlayVideo()}  */}
+                    {/* onClick={() => PlayVideo()}  npm i 6app@latest*/}
                     <video id="videoPlayer" width="100%" height="100%" controls poster={`${WEBSITE_URL}/thum.jpg`}>
                         <source src='http://localhost:5000/nodejS-streams' type="video/mp4"></source>
                     </video>

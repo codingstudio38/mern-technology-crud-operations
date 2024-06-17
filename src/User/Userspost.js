@@ -20,12 +20,14 @@ function Userspost() {
     const [showedit, setShowedit] = useState(false);
     const [user, setUser] = useState('');
     const [title, setTitle] = useState('');
-    const [type, setType] = useState('');
+    const [thumphoto, setThumphoto] = useState("");
+    // const [type, setType] = useState('');
     const [content, setContent] = useState('');
 
     const [edituser, setEdituser] = useState('');
     const [edittitle, setEdittitle] = useState('');
-    const [edittype, setEdittype] = useState('');
+    // const [edittype, setEdittype] = useState('');
+    const [editthumphoto, setEditthumphoto] = useState("")
     const [editcontent, setEditcontent] = useState('');
     const [rowid, setRowid] = useState('');
 
@@ -38,6 +40,8 @@ function Userspost() {
         "title": "",
         "type": "",
         "content": "",
+        "video_file": "",
+        "thumnail": "",
         "created_at": "",
         "updated_at": "",
         "__v": ""
@@ -81,6 +85,7 @@ function Userspost() {
         });
         result = await result.json()
         if (result.status === 200) {
+            // console.log(result);
             setNewdata([]);
             // console.log(result);
             setCurrentpage(result.list.page);
@@ -129,7 +134,7 @@ function Userspost() {
         const myform = new FormData();
         myform.append('user', user);
         myform.append('title', title);
-        myform.append('type', type);
+        myform.append('thumphoto', thumphoto);
         myform.append('content', content);
         let result = await fetch(`${API_URL}/users/save-post`, {
             method: 'POST',
@@ -166,7 +171,7 @@ function Userspost() {
             setRowid(result.result._id);
             setEdituser(result.result.userid);
             setEdittitle(result.result.title);
-            setEdittype(result.result.type);
+            // setEdittype(result.result.type);
             setEditcontent(result.result.content);
             // console.log(editpostdata);
         } else {
@@ -212,7 +217,7 @@ function Userspost() {
         myform.append('rowid', rowid);
         myform.append('userid', edituser);
         myform.append('title', edittitle);
-        myform.append('type', edittype);
+        myform.append('thumphoto', editthumphoto);
         myform.append('content', editcontent);
         let result = await fetch(`${API_URL}/users/update-post`, {
             method: 'POST',
@@ -282,9 +287,7 @@ function Userspost() {
                                 <td align='center'>{item.title}</td>
                                 <td align='center'>{item.type}</td>
                                 <td align='center'>
-                                    <textarea defaultValue={item.content}>
-
-                                    </textarea>
+                                    {item.content}
                                 </td>
                                 <td align='center'>{item.created_at} / {item.updated_at}</td>
                                 <td align='center'>
@@ -338,18 +341,13 @@ function Userspost() {
                             />
                         </div>
                         <div className="form-group m-1">
-                            <label htmlFor="type">Type</label>
-                            <select className="form-control" id="type" name='type' onChange={(e) => setType(e.target.value)}>
-                                <option value={''}>Select Type</option>
-                                <option value={'song'}>Song</option>
-                                <option value={'sport'}>Sport</option>
-                            </select>
+                            <label htmlFor="content">Description</label>
+                            <textarea rows={5} className='form-control' id="content" name='content' onChange={(e) => setContent(e.target.value)}>
+                            </textarea>
                         </div>
                         <div className="form-group m-1">
-                            <label htmlFor="content">Content</label>
-                            <textarea rows={5} className='form-control' id="content" name='content' onChange={(e) => setContent(e.target.value)}>
-
-                            </textarea>
+                            <label htmlFor="type">Thumnail</label>
+                            <input className="form-control" accept="image/png, image/jpeg" type="file" name='Thumphoto' id="Thumphoto" onChange={(e) => setThumphoto(e.target.files[0])} />
                         </div>
                     </form>
 
@@ -380,7 +378,6 @@ function Userspost() {
                                 {
                                     userslist.map((item, index) =>
                                         <option value={item._id} key={index} >{item.name}</option>
-                                        // selected = { editpostdata.userid == item._id ? true : false }
                                     )
                                 }
                             </select>
@@ -398,12 +395,8 @@ function Userspost() {
                             />
                         </div>
                         <div className="form-group m-1">
-                            <label htmlFor="type">Type</label>
-                            <select defaultValue={editpostdata.type} className="form-control" id="type" name='type' onChange={(e) => setEdittype(e.target.value)}>
-                                <option value={''}>Select Type</option>
-                                <option value={'song'} >Song</option>
-                                <option value={'sport'} >Sport</option>
-                            </select>
+                            <label htmlFor="type">Thumnail</label>
+                            <input className="form-control" accept="image/png, image/jpeg" type="file" name='editThumphoto' id="editThumphoto" onChange={(e) => setEditthumphoto(e.target.files[0])} />
                         </div>
                         <div className="form-group m-1">
                             <label htmlFor="content">Content</label>
