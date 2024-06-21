@@ -30,11 +30,28 @@ function Userspost() {
     const [editthumphoto, setEditthumphoto] = useState("")
     const [editcontent, setEditcontent] = useState('');
     const [rowid, setRowid] = useState('');
+    const [showvideomodal, setShowvideomodal] = useState(false);
+    const [postvideofile, setPostvideofile] = useState("");
+    const [postvideouploadprocess, setPostvideouploadprocess] = useState(false);
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const handleEditClose = () => setShowedit(false);
+    const handleVideomodal = () => setShowvideomodal(false);
+
     let [editpostdata, setEditpostdata] = useState({
+        "_id": "",
+        "userid": "",
+        "title": "",
+        "type": "",
+        "content": "",
+        "video_file": "",
+        "thumnail": "",
+        "created_at": "",
+        "updated_at": "",
+        "__v": ""
+    });
+    let [videoeditpostdata, setVideoeditpostdata] = useState({
         "_id": "",
         "userid": "",
         "title": "",
@@ -77,7 +94,7 @@ function Userspost() {
             navigate('./../../');
             return;
         }
-        let result = await fetch(`${API_URL}/users/post-list?page=${page}&size=${size}`, {
+        let result = await fetch(`${API_URL}/users/post-list?page=${page}&size=${size}&userid=${LOGIN_USER._id}`, {
             method: 'GET',
             headers: {
                 'authorization': `Bearer ${LOGIN_USER.token}`,
@@ -238,6 +255,31 @@ function Userspost() {
             console.error(result);
         }
     }
+    async function updateVideo() {
+        const myform = new FormData();
+        myform.append('postid', videoeditpostdata._id);
+        myform.append('postvideo', postvideofile);
+        setPostvideouploadprocess(true);
+        let result = await fetch(`${API_URL}/users/update-post-video`, {
+            method: 'POST',
+            body: myform,
+            headers: {
+                'authorization': `Bearer ${LOGIN_USER.token}`,
+            }
+        });
+        result = await result.json();
+        setPostvideouploadprocess(false);
+        console.clear();
+        if (result.status === 200) {
+            alert(result.message);
+            setShowedit(false);
+            getdata(1, 10);
+            setShowvideomodal(false);
+        } else {
+            alert(result.message);
+            console.error(result);
+        }
+    }
 
     return (
         <div>
@@ -272,7 +314,10 @@ function Userspost() {
                         <th className='th-center'>#</th>
                         <th className='th-center'>User Name</th>
                         <th className='th-center'>Title</th>
-                        <th className='th-center'>Type</th>
+                        {/* <th className='th-center'>Type</th> */}
+                        <th className='th-center'>Description</th>
+                        <th className='th-center'>Thumbnail</th>
+                        <th className='th-center'>Video</th>
                         <th className='th-center'>Content</th>
                         <th className='th-center'>Created Date</th>
                         <th className='th-center'>Action</th>
@@ -285,9 +330,24 @@ function Userspost() {
                                 <td align='center'>{pagingcounter++}</td>
                                 <td align='center'>{item.user_field.name}</td>
                                 <td align='center'>{item.title}</td>
-                                <td align='center'>{item.type}</td>
+                                {/* <td align='center'>{item.type}</td> */}
                                 <td align='center'>
                                     {item.content}
+                                </td>
+                                <td align='center'>
+                                    {
+
+                                        item.thumnail_filedetails.filesize == "" ?
+                                            <span className='text-danger'>Not Available</span>
+                                            : <span className='text-success'>Available</span>
+                                    }
+                                </td>
+                                <td align='center'>
+                                    {
+                                        item.video_file_filedetails.filesize == "" ?
+                                            <span className='text-danger'>Not Available</span>
+                                            : <span className='text-success'>Available</span>
+                                    }
                                 </td>
                                 <td align='center'>{item.created_at} / {item.updated_at}</td>
                                 <td align='center'>
@@ -296,6 +356,9 @@ function Userspost() {
                                     </button>
                                     <button type='button' className='btn btn-danger btn-sm' style={{ marginLeft: '4px' }} onClick={() => DeleteRow(item)}>
                                         <i className="fa fa-trash" aria-hidden="true"></i>
+                                    </button>
+                                    <button type='button' className='btn btn-primary btn-sm' style={{ marginLeft: '4px' }} onClick={() => { setVideoeditpostdata(item); setShowvideomodal(true) }}>
+                                        Upload Video
                                     </button>
                                 </td>
                             </tr>
@@ -357,7 +420,7 @@ function Userspost() {
                         Close
                     </Button>
                     <Button variant="primary" onClick={() => saveData()}>
-                        Save Changes
+                        Save
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -399,7 +462,7 @@ function Userspost() {
                             <input className="form-control" accept="image/png, image/jpeg" type="file" name='editThumphoto' id="editThumphoto" onChange={(e) => setEditthumphoto(e.target.files[0])} />
                         </div>
                         <div className="form-group m-1">
-                            <label htmlFor="content">Content</label>
+                            <label htmlFor="content">Description</label>
                             <textarea rows={5} className='form-control' id="content" name='content' defaultValue={editpostdata.content} onChange={(e) => setEditcontent(e.target.value)}>
 
                             </textarea>
@@ -412,7 +475,30 @@ function Userspost() {
                         Close
                     </Button>
                     <Button variant="primary" onClick={() => updateData()}>
-                        Save Changes
+                        Update
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <Modal show={showvideomodal} onHide={handleVideomodal} id="editmodal">
+                <Modal.Header closeButton>
+                    <Modal.Title>Upload Video</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <form>
+                        <div className="form-group m-1">
+                            <label htmlFor="type">Select Video <small className='text-danger'>(File size should be less than 300 mb.) </small></label>
+                            <input className="form-control" accept="video/*" type="file" name='postvideo' id="postvideo" onChange={(e) => setPostvideofile(e.target.files[0])} />
+                        </div>
+                    </form>
+
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" disabled={postvideouploadprocess} onClick={handleVideomodal}>
+                        Close
+                    </Button>
+                    <Button variant="primary" disabled={postvideouploadprocess} onClick={() => updateVideo()}>
+                        Save
                     </Button>
                 </Modal.Footer>
             </Modal>
