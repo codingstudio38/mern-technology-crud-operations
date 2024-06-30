@@ -122,3 +122,35 @@
    
   
 }
+
+.userphoto{
+  width: 30px;
+  height: 30px;
+      border-radius: 50%;
+    border: 1px solid #19a5ff;
+}
+
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+}
+
+.video-wrapper video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.video-not-found{
+      background-color: #c1c1c1 !important;
+          cursor: no-drop !important;
+}
+
+.cut-text { 
+  text-overflow: ellipsis !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './../css/App.css';
-import { Pagination } from 'antd';
-import Table from 'react-bootstrap/Table';
-import { useNavigate, Link } from 'react-router-dom';
+// import { Pagination } from 'antd';
+// import Table from 'react-bootstrap/Table';
 import { API_URL, USER_DETAILS, API_STORAGE_URL, WEBSITE_URL } from './../Constant';
+// import ReactPlayer from 'react-player';
+import { useNavigate, useSearchParams, useParams, Link } from 'react-router-dom';
 function Videogallery() {
+    const params = useParams();//param
+    const [searchParams, setSearchParams] = useSearchParams();//queryparam
     const navigate = useNavigate();
     const LOGIN_USER = USER_DETAILS();
     const [limitval, setLimitval] = useState([]);
@@ -13,6 +16,10 @@ function Videogallery() {
     const [alltotal, setAlltotal] = useState(0);
     var [pagingcounter, setPagingcounter] = useState(1);
     const [newdata, setNewdata] = useState([]);
+    const [videoid, setVideoid] = useState("");
+    const [checkvideo, setCheckvideo] = useState(false);
+    const [videodetails, setVideodetails] = useState({});
+    const [videourl, setVideourl] = useState("");
     useEffect(() => {
         document.title = "MERN Technology || Video Gallery";
         if (LOGIN_USER === false) {
@@ -21,14 +28,53 @@ function Videogallery() {
             return;
         }
         getdata(currentpage, postsperpage);
+        setVideoid(searchParams.get('watch'));
+        console.log(videoid, searchParams.get('watch'));
+        if (searchParams.get('watch') != null && searchParams.get('watch') != "") {
+            GetVideoById(searchParams.get('watch'));
+        }
+        // console.log(videoid, searchParams.get('watch'));
     }, []);
+    async function WatchVideo(item) {
+        if (item.video_file_filedetails.filesize !== "") {
+            window.location.href = `${WEBSITE_URL}/user/video-gallery?watch=${item._id}`;
+            // navigate(`./../../user/video-gallery?watch=${item._id}`);
+        }
+    }
+    async function GetVideoById(id) {
+        let result = await fetch(`${API_URL}/users/post-byid/${id}`, {
+            method: 'GET',
+            headers: {
+                'authorization': `Bearer ${LOGIN_USER.token}`,
+            }
+        });
+        result = await result.json();
+        if (result.status === 200) {
+            // console.log(result.result);
+            if (result.total > 0) {
+                setVideodetails(result.result);
+                setVideourl(`${API_URL}/nodejS-streams?watch=${result.result._id}`);
+                if (result.result.video_file_filedetails.filesize == "") {
+                    setCheckvideo(false);
+                } else {
+                    setCheckvideo(true);
+                }
+            } else {
+                setCheckvideo(false);
+            }
+        } else {
+            alert(result.message);
+            console.error(result);
+            setCheckvideo(false);
+        }
+    }
     async function getdata(page, size) {
         if (LOGIN_USER === false) {
             window.localStorage.clear();
             navigate('./../../');
             return;
         }
-        let result = await fetch(`${API_URL}/users-list?page=${page}&size=${size}`, {
+        let result = await fetch(`${API_URL}/users/post-list?page=${page}&size=${size}&userid=`, {
             method: 'GET',
             headers: {
                 'authorization': `Bearer ${LOGIN_USER.token}`,
@@ -40,6 +86,7 @@ function Videogallery() {
             setPostsperpage(result.list.limit);
             setAlltotal(result.list.totalDocs);
             setNewdata(result.list.docs);
+            console.log(newdata);
             setPagingcounter(result.list.pagingCounter);
             if (result.list.totalDocs <= 5) {
                 setLimitval([5]);
@@ -84,85 +131,88 @@ function Videogallery() {
     return (
         <div>
             <h2 style={{ textAlign: "center" }}>Video Gallery</h2>
-            <div className='row col-md-12'>
-                <div className='col-md-8'>
-                    {/* onClick={() => PlayVideo()}  npm i 6app@latest*/}
-                    <video id="videoPlayer" width="100%" height="100%" controls poster={`${WEBSITE_URL}/thum.jpg`}>
-                        <source src='http://localhost:5000/nodejS-streams' type="video/mp4"></source>
-                    </video>
-                </div>
-                <div className='col-md-4'>
-                    <div className="col-sm-12 m-1" style={{ 'cursor': 'pointer' }}>
-                        <div className="card">
-                            <img className="card-img-top highte200" src={`${WEBSITE_URL}/thum.jpg`} alt="Card image cap"></img>
-                            <div className="card-body">
-                                <h5 className="card-title">Special title treatment</h5>
-                                <p className="card-text">With supporting text below as a natural lead-in to additional content.</p>
+
+
+            {
+                checkvideo == false ?
+                    <div className='row col-md-12'>
+                        {
+                            newdata.map((item, index) =>
+                                <div className="col-md-3 mb-4" style={{ 'cursor': 'pointer' }} onClick={() => WatchVideo(item)} key={index} id={index}>
+                                    <div className={item.video_file_filedetails.filesize == "" ? 'card video-not-found' : 'card'}>
+                                        {
+                                            item.thumnail_filedetails.filesize == "" ?
+                                                <img className="card-img-top highte200" src={`${WEBSITE_URL}/video-thumbnail.jpg`} alt="Card image cap" />
+                                                : <img className="card-img-top highte200" src={`${item.thumnail_filedetails.file_path}`} alt="Card image cap" />
+                                        }
+                                        <div className="card-body">
+
+                                            <p className="card-text">
+                                                {
+                                                    item.user_filedetails.filesize == "" ?
+                                                        <img className="userphoto" src={`${WEBSITE_URL}/profile.png`} alt={item.user_field.name} />
+                                                        : <img className="userphoto" src={`${item.user_filedetails.file_path}`} alt={item.user_field.name} />
+                                                }
+                                                {item.user_field.name}</p>
+                                            <h5 className="card-title cut-text">{item.title}</h5>
+                                            <p className="card-text cut-text">{item.content}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        }
+                    </div>
+                    :
+                    <div className='row col-md-12'>
+                        <div className='col-md-8'>
+                            <div className="video-wrapper">
+                                <video id="videoPlayer" className="react-player" controls poster={
+                                    videodetails.thumnail_filedetails.filesize == "" ?
+                                        `${WEBSITE_URL}/video-thumbnail.jpg`
+                                        :
+                                        `${videodetails.thumnail_filedetails.file_path}`
+                                }>
+                                    <source src={videourl} type="video/mp4"></source>
+                                </video>
+                            </div>
+                            <div className='video-details'>
+                                <h4>{videodetails.title}</h4>
+                                <p>{videodetails.content}</p>
                             </div>
                         </div>
-                    </div>
-                    <div className="col-sm-12 m-1" style={{ 'cursor': 'pointer' }}>
-                        <div className="card">
-                            <img className="card-img-top highte200" src={`${WEBSITE_URL}/thum.jpg`} alt="Card image cap"></img>
-                            <div className="card-body">
-                                <h5 className="card-title">Special title treatment</h5>
-                                <p className="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                            </div>
+                        <div className='col-md-4'>
+                            {
+                                newdata.map((item, index) =>
+                                    <div className="col-sm-12 m-1" style={{ 'cursor': 'pointer' }} onClick={() => WatchVideo(item)} key={index} id={index}>
+                                        <div className={item.video_file_filedetails.filesize == "" ? 'card video-not-found' : 'card'}>
+                                            {
+                                                item.thumnail_filedetails.filesize == "" ?
+                                                    <img className="card-img-top highte200" src={`${WEBSITE_URL}/video-thumbnail.jpg`} alt="Card image cap" />
+                                                    : <img className="card-img-top highte200" src={`${item.thumnail_filedetails.file_path}`} alt="Card image cap" />
+                                            }
+                                            <div className="card-body">
+
+                                                <p className="card-text">
+                                                    {
+                                                        item.user_filedetails.filesize == "" ?
+                                                            <img className="userphoto" src={`${WEBSITE_URL}/profile.png`} alt={item.user_field.name} />
+                                                            : <img className="userphoto" src={`${item.user_filedetails.file_path}`} alt={item.user_field.name} />
+                                                    }
+                                                    {item.user_field.name}</p>
+                                                <h5 className="card-title cut-text">{item.title}</h5>
+                                                <p className="card-text cut-text">{item.content}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            }
                         </div>
                     </div>
-                </div>
-            </div>
+            }
 
 
-            {/* <Table striped bordered hover>
-                <thead>
-                    <tr>
-                        <th colSpan={7}>
-                            <select id='limit' name='limit' onChange={(e) => changeperPage(e)} className='limit' defaultValue={5}>
-                                <option value="5">Limit</option>
-                                {
-                                    limitval.map((item, index) =>
-                                        <option value={item} key={index}>{item}</option>
-                                    )
-                                }
-                            </select>
-                            <p style={{ textAlign: "right" }}> Total: {alltotal} of {pagingcounter + newdata.length - 1}</p>
-                        </th>
 
-                    </tr>
-                    <tr>
-                        <th className='th-center'>#</th>
-                        <th className='th-center'>Name</th>
-                        <th className='th-center'>Email Id</th>
-                        <th className='th-center'>Phone No</th>
-                        <th className='th-center'>Photo</th>
-                        <th className='th-center'>Create Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {
-                        newdata.map((item, index) =>
-                            <tr key={index} id={index}>
-                                <td align='center'>{pagingcounter++}</td>
-                                <td align='center'>{item.name}</td>
-                                <td align='center'>{item.email}</td>
-                                <td align='center'>{item.phone}</td>
-                                <td align='center'>
-                                    <img src={API_STORAGE_URL + "/users-file/" + item.photo} width={"50px"} height={"60px"} />
-                                </td>
-                                <td align='center'>{ChangeDate(item.created_at)}</td>
-                            </tr>
-                        )
-                    }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colSpan={7} align='center'>
-                            <Pagination pageSize={postsperpage} total={alltotal} current={currentpage} onChange={(value) => changePage(value)} showQuickJumper />
-                        </td>
-                    </tr>
-                </tfoot>
-            </Table> */}
+
         </div>
     )
 }
