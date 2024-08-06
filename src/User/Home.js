@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import './../css/App.css';
 import { Pagination } from 'antd';
 import Table from 'react-bootstrap/Table';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_URL, USER_DETAILS, API_STORAGE_URL } from './../Constant';
+// import Heavy from './Heavy';
+const Heavy = lazy(() => import('./Heavy'));
 function Home() {
     const navigate = useNavigate();
     const LOGIN_USER = USER_DETAILS();
@@ -107,6 +109,12 @@ function Home() {
     }
     return (
         <div>
+
+            {/* <div>
+                <Suspense fallback={<p>Loading...</p>}>
+                    <Heavy />
+                </Suspense>
+            </div> */}
             <h2 style={{ textAlign: "center" }}>User List</h2>
             <Table striped bordered hover>
                 <thead>
@@ -162,6 +170,8 @@ function Home() {
                     </tr>
                 </tfoot>
             </Table>
+
+
         </div>
     )
 }
