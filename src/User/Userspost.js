@@ -35,7 +35,10 @@ function Userspost() {
     const [postvideouploadprocess, setPostvideouploadprocess] = useState(false);
 
     const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+    const handleShow = () => {
+        setUser(LOGIN_USER._id);
+        setShow(true);
+    }
     const handleEditClose = () => setShowedit(false);
     const handleVideomodal = () => setShowvideomodal(false);
 
@@ -71,7 +74,7 @@ function Userspost() {
             return;
         }
         getdata(currentpage, postsperpage);
-        getUserdata();
+        // getUserdata();
     }, []);
     async function getUserdata() {
         let result = await fetch(`${API_URL}/all-users`, {
@@ -381,7 +384,7 @@ function Userspost() {
                 </Modal.Header>
                 <Modal.Body>
                     <form>
-                        <div className="form-group m-1">
+                        {/* <div className="form-group m-1">
                             <label htmlFor="user">User</label>
                             <select className="form-control" id="user" name='user' onChange={(e) => setUser(e.target.value)}>
                                 <option value={''}>Select User</option>
@@ -391,7 +394,7 @@ function Userspost() {
                                     )
                                 }
                             </select>
-                        </div>
+                        </div> */}
                         <div className="form-group m-1">
                             <label htmlFor="title">Title</label>
                             <input
@@ -434,7 +437,7 @@ function Userspost() {
                 </Modal.Header>
                 <Modal.Body>
                     <form>
-                        <div className="form-group m-1">
+                        {/* <div className="form-group m-1">
                             <label htmlFor="user">User</label>
                             <select className="form-control" id="user" name='user' defaultValue={editpostdata.userid} onChange={(e) => setEdituser(e.target.value)}>
                                 <option value={''}>Select User</option>
@@ -444,7 +447,7 @@ function Userspost() {
                                     )
                                 }
                             </select>
-                        </div>
+                        </div> */}
                         <div className="form-group m-1">
                             <label htmlFor="title">Title</label>
                             <input

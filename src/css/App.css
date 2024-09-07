@@ -154,3 +154,7 @@
   overflow: hidden !important;
   white-space: nowrap !important;
 }
+
+.current-video{
+  background-color: #cbd7e1 !important;
+}

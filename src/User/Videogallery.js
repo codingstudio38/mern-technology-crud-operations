@@ -3,7 +3,7 @@ import './../css/App.css';
 // import { Pagination } from 'antd';
 // import Table from 'react-bootstrap/Table';
 import { API_URL, USER_DETAILS, API_STORAGE_URL, WEBSITE_URL } from './../Constant';
-// import ReactPlayer from 'react-player';
+import Videoplayer from './Videoplayer';
 import { useNavigate, useSearchParams, useParams, Link } from 'react-router-dom';
 function Videogallery() {
     const params = useParams();//param
@@ -20,6 +20,7 @@ function Videogallery() {
     const [checkvideo, setCheckvideo] = useState(false);
     const [videodetails, setVideodetails] = useState({});
     const [videourl, setVideourl] = useState("");
+    const [reloadvideo, setReloadvideo] = useState(false);
     useEffect(() => {
         document.title = "MERN Technology || Video Gallery";
         if (LOGIN_USER === false) {
@@ -37,11 +38,14 @@ function Videogallery() {
     }, []);
     async function WatchVideo(item) {
         if (item.video_file_filedetails.filesize !== "") {
-            window.location.href = `${WEBSITE_URL}/user/video-gallery?watch=${item._id}`;
-            // navigate(`./../../user/video-gallery?watch=${item._id}`);
+            // window.location.href = `${WEBSITE_URL}/user/video-gallery?watch=${item._id}`;
+            navigate(`./../../user/video-gallery?watch=${item._id}`);
+            GetVideoById(item._id);
+            setVideoid(item._id);
         }
     }
     async function GetVideoById(id) {
+        setReloadvideo(true);
         let result = await fetch(`${API_URL}/users/post-byid/${id}`, {
             method: 'GET',
             headers: {
@@ -49,6 +53,7 @@ function Videogallery() {
             }
         });
         result = await result.json();
+        setReloadvideo(false);
         if (result.status === 200) {
             // console.log(result.result);
             if (result.total > 0) {
@@ -139,7 +144,9 @@ function Videogallery() {
                         {
                             newdata.map((item, index) =>
                                 <div className="col-md-3 mb-4" style={{ 'cursor': 'pointer' }} onClick={() => WatchVideo(item)} key={index} id={index}>
-                                    <div className={item.video_file_filedetails.filesize == "" ? 'card video-not-found' : 'card'}>
+                                    <div className={item.video_file_filedetails.filesize == "" ?
+                                        "card video-not-found"
+                                        : videoid == item._id ? 'card current-video' : "card"}>
                                         {
                                             item.thumnail_filedetails.filesize == "" ?
                                                 <img className="card-img-top highte200" src={`${WEBSITE_URL}/video-thumbnail.jpg`} alt="Card image cap" />
@@ -166,14 +173,20 @@ function Videogallery() {
                     <div className='row col-md-12'>
                         <div className='col-md-8'>
                             <div className="video-wrapper">
-                                <video id="videoPlayer" className="react-player" controls poster={
-                                    videodetails.thumnail_filedetails.filesize == "" ?
-                                        `${WEBSITE_URL}/video-thumbnail.jpg`
+                                {
+                                    reloadvideo == true ?
+                                        <></>
                                         :
-                                        `${videodetails.thumnail_filedetails.file_path}`
-                                }>
-                                    <source src={videourl} type="video/mp4"></source>
-                                </video>
+                                        <video id="videoPlayer" className="react-player" controls poster={
+                                            videodetails.thumnail_filedetails.filesize == "" ? `${WEBSITE_URL}/video-thumbnail.jpg`
+                                                :
+                                                `${videodetails.thumnail_filedetails.file_path}`
+                                        }>
+                                            <source src={videourl} type="video/mp4"></source>
+                                        </video>
+
+                                }
+                                {/*<Videoplayer videourl={videourl} thumbnail={videodetails.thumnail_filedetails.filesize == "" ? `${WEBSITE_URL}/video-thumbnail.jpg` : `${videodetails.thumnail_filedetails.file_path}`} /> */}
                             </div>
                             <div className='video-details'>
                                 <h4>{videodetails.title}</h4>
@@ -184,7 +197,9 @@ function Videogallery() {
                             {
                                 newdata.map((item, index) =>
                                     <div className="col-sm-12 m-1" style={{ 'cursor': 'pointer' }} onClick={() => WatchVideo(item)} key={index} id={index}>
-                                        <div className={item.video_file_filedetails.filesize == "" ? 'card video-not-found' : 'card'}>
+                                        <div className={item.video_file_filedetails.filesize == "" ?
+                                            "card video-not-found"
+                                            : videoid == item._id ? 'card current-video' : "card"}>
                                             {
                                                 item.thumnail_filedetails.filesize == "" ?
                                                     <img className="card-img-top highte200" src={`${WEBSITE_URL}/video-thumbnail.jpg`} alt="Card image cap" />
