@@ -13,6 +13,10 @@ export const USER_DETAILS = () => {
     }
 }
 
+export const PATHNAME = () => {
+    return window.location.pathname;
+}
+
 export const SET_LOCAL = (name, data) => {
     if (name == "") {
         return false;

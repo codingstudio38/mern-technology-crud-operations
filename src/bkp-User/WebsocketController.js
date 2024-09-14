@@ -26,11 +26,7 @@ const WebsocketController = React.forwardRef((props, ref) => {
     // var [wsreadyState, setWsreadyState] = useState(0);
     useEffect(() => {
         if (props.RunWS) {
-            if (WSclient == null) {
-                connectWebSocket();
-            } else {
-                console.log('already ws connectes')
-            }
+            connectWebSocket();
         }
     }, []);
     const connectWebSocket = () => {

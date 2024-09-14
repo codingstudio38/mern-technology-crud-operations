@@ -30,9 +30,11 @@ function Videogallery() {
         }
         getdata(currentpage, postsperpage);
         setVideoid(searchParams.get('watch'));
+        console.log(videoid, searchParams.get('watch'));
         if (searchParams.get('watch') != null && searchParams.get('watch') != "") {
             GetVideoById(searchParams.get('watch'));
         }
+        // console.log(videoid, searchParams.get('watch'));
     }, []);
     async function WatchVideo(item) {
         if (item.video_file_filedetails.filesize !== "") {
@@ -53,6 +55,7 @@ function Videogallery() {
         result = await result.json();
         setReloadvideo(false);
         if (result.status === 200) {
+            // console.log(result.result);
             if (result.total > 0) {
                 setVideodetails(result.result);
                 setVideourl(`${API_URL}/nodejS-streams?watch=${result.result._id}`);
@@ -88,6 +91,7 @@ function Videogallery() {
             setPostsperpage(result.list.limit);
             setAlltotal(result.list.totalDocs);
             setNewdata(result.list.docs);
+            console.log(newdata);
             setPagingcounter(result.list.pagingCounter);
             if (result.list.totalDocs <= 5) {
                 setLimitval([5]);
