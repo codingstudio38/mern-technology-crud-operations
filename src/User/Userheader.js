@@ -3,15 +3,13 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import { NavDropdown } from 'react-bootstrap';
 import { useNavigate, NavLink } from 'react-router-dom';
-import useWebSocket from './WSController';
+import { API_URL, USER_DETAILS, USER_LOGOUT } from './../Constant';
+import React, { useEffect, useRef } from 'react';
 import './../css/App.css';
-import React, { useState, useEffect, useRef } from 'react';
-import { API_URL, WEBSITE_PUBLIC, API_STORAGE_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL, USER_LOGOUT } from './../Constant';
+import { WebsocketController } from './WebsocketController';
 function Userheader() {
-    const { sendWebSocketMessage, isConnected } = useWebSocket(WSonmessage, WSonerror, WSonclose, WSonopen);
     const navigate = useNavigate();
     const LOGIN_USER = USER_DETAILS();
-    // const { sendWebSocketMessage, isConnected } = useWebSocket(WSonmessage, WSonerror, WSonclose, WSonopen);
     useEffect(() => {
         // setInterval(function () {
 
@@ -50,8 +48,12 @@ function Userheader() {
             alert("Failed..!! User details not found.");
         }
     }
-
-
+    function WSonopen(e) {
+        console.log(e);
+    }
+    function WSonmessage(e) {
+        console.log('Userheader.js', 'calling WSonmessage function');
+    }
     function WSonerror(e) {
         console.log(e);
     }
@@ -59,78 +61,51 @@ function Userheader() {
     function WSonclose(e) {
         console.log(e);
     }
-    function WSonopen(e) {
-        console.log(e)
-    }
-    function WSonmessage(e) {
-        const dataFromServer = JSON.parse(e.data);
-        console.log('Userheader.js', dataFromServer);
-        if (dataFromServer.type == 'utf8') {
-            let dataWS = JSON.parse(dataFromServer.utf8Data);
-            if (dataWS.type.code === 200) {//for new massage
-                onNewMessage(dataWS);
-            }
-            //  else if (dataWS.type.code === 100) {//for new connetion
-            //     checkOnlineOrOfflineArr(dataWS);
-            //     // if (dataWS.user == LOGIN_USER._id) {
-            //     //     setWsclientid(dataFromServer.clientid);
-            //     // }
-            //     // console.log(dataWS, dataFromServer.clientid);
-            // } 
-            else if (dataWS.type.code === 300) {//for massage typeing
-
-            } else if (dataWS.type.code === 400) {//for massage typeing stop
-
-            }
-        } else if (dataFromServer.type == 'datafromws') {
-            if (dataFromServer.code == 1000) {// new client connection
-                console.log('connected client', dataFromServer.clientid);
-            } else if (dataFromServer.code == 2000) {// client disconnection
-                console.log('disconnect client', dataFromServer.clientid);
-            }
+    const childRef = useRef(null);
+    function CloseWSClient() {
+        if (childRef.current) {
+            childRef.current.CloseWSClientFn(false);
         }
     }
 
-    function onNewMessage(data) {
-        var chatuser_datais, user_is, user_id, active;
-        chatuser_datais = GET_LOCAL('activechatuser');
-        if (chatuser_datais !== false) {
-            user_is = JSON.parse(chatuser_datais);
-            user_id = user_is.chatuser;
-            active = user_is.chatboxopen;
+    const childDataSendRef = useRef(null);
+    function clientSend(data) {
+        if (childDataSendRef.current) {
+            childDataSendRef.current.WSsendFn(data);
+        }
+    }
+
+    const _WSclient = useRef(null);
+    function WSclient_() {
+        if (_WSclient.current) {
+            return _WSclient.current.MyWSclient();
         } else {
-            user_id = "";
-            active = false;
-        }
-        if (data.to_user == LOGIN_USER._id) {
-            console.log(data);
+            return null;
         }
     }
-
-
     return (
-        <>
-            <Navbar bg="primary" variant="dark">
-                <Container>
-                    <Nav className="me-auto">
-                        <NavLink className={"navlink"} to="/user/home">Home</NavLink>
-                        <NavLink className={"navlink"} to="/user/users-post">Users Post</NavLink>
-                        <NavLink className={"navlink"} to="/user/video-gallery">Video Gallery</NavLink>
-                        <NavLink className={"navlink"} to="/user/chat-box">Live Chat</NavLink>
-                    </Nav>
-                    {
-                        checkUser() ?
+        <Navbar bg="primary" variant="dark">
+            <Container>
+                <Nav className="me-auto">
+                    <NavLink className={"navlink"} to="/user/home">Home</NavLink>
+                    <NavLink className={"navlink"} to="/user/users-post">Users Post</NavLink>
+                    <NavLink className={"navlink"} to="/user/video-gallery">Video Gallery</NavLink>
+                    <NavLink className={"navlink"} to="/user/chat-box">Live Chat</NavLink>
+                </Nav>
+                {
+                    checkUser() ?
+                        <>
+                            {/* <WebsocketController ponopen={WSonopen} ponmessage={WSonmessage} ponerror={WSonerror} ponclose={WSonclose} RunWS={true} ref={[childRef, childDataSendRef, _WSclient]} /> */}
                             <Nav>
                                 <NavDropdown title={LOGIN_USER.name}>
                                     <NavDropdown.Item onClick={() => { navigate('/user/home') }}>Profile</NavDropdown.Item>
                                     <NavDropdown.Item onClick={() => logout()}>Logout</NavDropdown.Item>
                                 </NavDropdown>
-                            </Nav>
-                            : null
-                    }
-                </Container>
-            </Navbar>
-        </>
+                            </Nav></>
+                        : null
+                }
+            </Container>
+        </Navbar>
     );
 }
 

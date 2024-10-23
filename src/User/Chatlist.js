@@ -1,13 +1,13 @@
 import './../css/chat-box.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { API_URL, WEBSITE_PUBLIC, API_STORAGE_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL, PATHNAME } from './../Constant';
+import { API_URL, WEBSITE_PUBLIC, API_STORAGE_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from './../Constant';
 import Messagefilefilter from './Messagefilefilter';
 import $ from 'jquery';
-import useWebSocket from './WSController';
-import { useLocation } from 'react-router-dom';
+import { WebsocketController } from './WebsocketController';
+// import { w3cwebsocket } from "websocket";
+
 function Chatlist() {
-    const location = useLocation();
     const navigate = useNavigate();
     const [message, setMessage] = useState("");
     const [messagefile, setMessagefile] = useState("");
@@ -23,9 +23,14 @@ function Chatlist() {
     const [loginid, setLoginid] = useState(LOGIN_USER._id);
     const [typinglabel, setTypinglabel] = useState(false);
     const [wsclientid, setWsclientid] = useState('');
-    const { sendWebSocketMessage, isConnected, disconnectWebSocket } = useWebSocket(WSonmessage, WSonerror, WSonclose, WSonopen);
+
     var activewsclients = [];
     var allusers = [];
+    // const [activewsclients, setActivewsclients] = useState([]);
+    // const [WSclient, setWSclient] = useState(null);
+    // const [isConnected, setIsConnected] = useState(false);
+    // var [reconnectIn, setReconnectIn] = useState(0);
+    // var [wsreadyState, setWsreadyState] = useState(0);
     useEffect(() => {
         document.title = "MERN Technology || User - Chat Box";
         REMOVE_LOCAL('activechatuser');
@@ -35,9 +40,16 @@ function Chatlist() {
             return;
         }
         getUserlist("");
+        // setTimeout(() => {
+        //     WSclient_()
+        // }, 2000)
         setTimeout(() => {
             getNumberofActiveUser();
         }, 1000)
+        // setTimeout(() => {
+        //     delete WSclient_();
+        // }, 3000)
+        // console.log(WebsocketController({ 'onopen': WSonopen, 'onmessage': WSonmessage, 'onerror': WSonerror, 'onclose': WSonclose }));
     }, []);
 
     ////////////////////for WebsocketController start////////////////////
@@ -46,20 +58,20 @@ function Chatlist() {
     ////////////////////for WebsocketController start////////////////////
     ////////////////////for WebsocketController start////////////////////
     function WSonopen(e) {
-        // if (PATHNAME() !== '/user/chat-box') {
-        //     return;
-        // }
         setTimeout(() => {
+            // clientSend(JSON.stringify({
+            //     type: { message: "new conection", code: 100 },
+            //     msg: "new user conected",
+            //     user: LOGIN_USER._id
+            // }));
             UpdateUserWeStatus(LOGIN_USER._id, 1);
         }, 1000)
 
     }
+
     function WSonmessage(e) {
-        // if (PATHNAME() !== '/user/chat-box') {
-        //     return;
-        // }
+        console.log('Chatlist.js', 'calling WSonmessage function');
         const dataFromServer = JSON.parse(e.data);
-        console.log(dataFromServer);
         if (dataFromServer.type == 'utf8') {
             let dataWS = JSON.parse(dataFromServer.utf8Data);
             if (dataWS.type.code === 200) {//for new massage
@@ -84,33 +96,43 @@ function Chatlist() {
             } else if (dataFromServer.code == 2000) {// client disconnection
                 console.log('disconnect client', dataFromServer.clientid);
                 getNumberofActiveUser();
+            } else {
+                console.log('disconnect client', dataFromServer);
             }
         }
 
     }
 
     function WSonerror(e) {
-        // if (PATHNAME() !== '/user/chat-box') {
-        //     return;
-        // }
-        // console.log(e);
+        console.log(e);
     }
 
     function WSonclose(e) {
-        // if (PATHNAME() !== '/user/chat-box') {
-        //     return;
-        // }
-        // console.log(e);
+        console.log(e);
     }
 
+    const childRef = useRef(null);
+    function CloseWSClient() {
+        if (childRef.current) {
+            childRef.current.CloseWSClientFn(false);
+        }
+    }
 
+    const childDataSendRef = useRef(null);
     function clientSend(data) {
-        // if (PATHNAME() !== '/user/chat-box') {
-        //     return;
-        // }
-        sendWebSocketMessage(data);
+        if (childDataSendRef.current) {
+            childDataSendRef.current.WSsendFn(data);
+        }
     }
 
+    const _WSclient = useRef(null);
+    function WSclient_() {
+        if (_WSclient.current) {
+            return _WSclient.current.MyWSclient();
+        } else {
+            return null;
+        }
+    }
     ////////////////////for WebsocketController end////////////////////
     ////////////////////for WebsocketController end////////////////////
     ////////////////////for WebsocketController end////////////////////
@@ -152,19 +174,19 @@ function Chatlist() {
         }
     }
     function TypeinggMassageFN(type) {
-        // if (type) {
-        //     clientSend(JSON.stringify({
-        //         type: { message: "user is typing..", code: 300 },
-        //         msg: "typing",
-        //         user: LOGIN_USER._id
-        //     }));
-        // } else {
-        //     clientSend(JSON.stringify({
-        //         type: { message: "user typing stop.", code: 400 },
-        //         msg: "typing stop",
-        //         user: LOGIN_USER._id
-        //     }));
-        // }
+        if (type) {
+            clientSend(JSON.stringify({
+                type: { message: "user is typing..", code: 300 },
+                msg: "typing",
+                user: LOGIN_USER._id
+            }));
+        } else {
+            clientSend(JSON.stringify({
+                type: { message: "user typing stop.", code: 400 },
+                msg: "typing stop",
+                user: LOGIN_USER._id
+            }));
+        }
     }
     async function UpdateUserWeStatus(userid, status) {
         const myform = new FormData();
@@ -318,6 +340,7 @@ function Chatlist() {
             }
         });
         result = await result.json();
+        // console.log(result);
         if (result.status === 200) {
             let letarray = result.data.filter((item) => {
                 return item._id !== LOGIN_USER._id;
@@ -325,6 +348,7 @@ function Chatlist() {
             letarray.forEach(user => {
                 getnoofunseenchat(user._id, LOGIN_USER._id);
             });
+            // console.log(letarray);
             setList(letarray);
             allusers = [];
             allusers = letarray;
@@ -337,6 +361,11 @@ function Chatlist() {
         getUserlist(k);
     }
     async function ActiveChatUser(id) {
+        // clientSend(JSON.stringify({
+        //     type: { message: "new conection", code: 100 },
+        //     msg: "new user conected",
+        //     user: LOGIN_USER._id
+        // }));
         setChatuser(id);
         setChatboxopen(true);
         REMOVE_LOCAL('activechatuser');
@@ -406,8 +435,10 @@ function Chatlist() {
                 if (data.user == user_id && active == true) {
                     FindChat(data.message_id);
                     UpdateReadStatus(data.message_id, data.user, data.to_user, 1);
+
                 } else {
                     getnoofunseenchat(data.user, data.to_user);
+                    // alert(`new message id ${data.message_id}`);
                 }
             }
         }
@@ -543,14 +574,14 @@ function Chatlist() {
         setPhotosrc(`${WEBSITE_PUBLIC}/no-img.jpg`);
     }
 
-    async function onNewMessageSound() {
-        // console.log(location.pathname, PATHNAME());
+    function onNewMessageSound() {
         const audio = new Audio(`${WEBSITE_PUBLIC}/sound/Messenger_Notification.mp3`);
         audio.play();
     }
 
     return (
         <div>
+            <WebsocketController ponopen={WSonopen} ponmessage={WSonmessage} ponerror={WSonerror} ponclose={WSonclose} RunWS={true} ref={[childRef, childDataSendRef, _WSclient]} />
             <div className="container-chat container clearfix">
                 <h2 style={{ "textAlign": "center", "textDecoration": "underline" }}>React JS Live Chat Box</h2>
                 <h3>Name :- {LOGIN_USER.name}, my id:-{LOGIN_USER._id}</h3>
@@ -587,7 +618,7 @@ function Chatlist() {
                                         )
                                     }
 
-
+                                    {/* https://stackoverflow.com/questions/29286050/websocket-client-disconnects-on-sending-large-data */}
                                 </ul>
 
                             </div>
@@ -740,7 +771,7 @@ function Chatlist() {
                                     <label className="fa fa-file-image-o" htmlFor="IMGPhoto"></label>
                                     <input id="IMGPhoto" type="file" accept="image/png, image/gif, image/jpeg,.xlsx,.xls,.doc, .docx,.ppt, .pptx,.txt,.pdf" style={{ display: "none" }} onChange={(e) => setIMGPhoto(e)} />
                                     <button type='button' onClick={() => SendChat()}>Send</button>
-                                    <button type='button' onClick={() => disconnectWebSocket()}>WS Close</button>
+                                    <button type='button' onClick={() => CloseWSClient()}>WS Close</button>
                                     {/* <button type='button' onClick={() => checkuserId('id')}>Test</button> */}
 
                                 </form>
