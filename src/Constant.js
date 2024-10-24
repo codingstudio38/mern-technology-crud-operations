@@ -1,3 +1,6 @@
+import CryptoJS from "crypto-js";
+const secretKey = 'bc665a1f223dba15f5fbf5df08838647';
+const iv_secretKey = 'bc66-f223-dba1-8647-2345-fd45-dfg3';
 export const API_URL = "http://localhost:5000";
 export const API_STORAGE_URL = "http://localhost:5000";
 export const WEBSITE_URL = "http://localhost:3000";
@@ -60,4 +63,28 @@ export const USER_LOGOUT = async (token) => {
     });
     result = await result.json();
     return result;
+}
+
+export const encrypt = (data) => {
+    const key_ = CryptoJS.enc.Utf8.parse(secretKey);
+    const iv_ = CryptoJS.enc.Utf8.parse(iv_secretKey);
+    const encrypted = CryptoJS.AES.encrypt(data,
+        key_, {
+        iv: iv_,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    });
+    return encrypted.toString();
+}
+
+export const decrypt = (encryptedData) => {
+    const key_ = CryptoJS.enc.Utf8.parse(secretKey);
+    const iv_ = CryptoJS.enc.Utf8.parse(iv_secretKey);
+    const decrypted = CryptoJS.AES.decrypt(encryptedData,
+        key_, {
+        iv: iv_,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    });
+    return decrypted.toString(CryptoJS.enc.Utf8);
 }

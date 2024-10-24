@@ -4,7 +4,7 @@ import { Pagination } from 'antd';
 import Table from 'react-bootstrap/Table';
 import { Modal, Button } from "react-bootstrap";
 import { useNavigate } from 'react-router-dom';
-import { API_URL, USER_DETAILS } from '../Constant';
+import { API_URL, USER_DETAILS, encrypt, decrypt } from '../Constant';
 import $ from 'jquery';
 function Userspost() {
     const navigate = useNavigate();
@@ -105,7 +105,6 @@ function Userspost() {
         });
         result = await result.json()
         if (result.status === 200) {
-            // console.log(result);
             setNewdata([]);
             // console.log(result);
             setCurrentpage(result.list.page);

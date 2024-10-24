@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import './../css/App.css';
 // import { Pagination } from 'antd';
 // import Table from 'react-bootstrap/Table';
-import { API_URL, USER_DETAILS, API_STORAGE_URL, WEBSITE_URL } from './../Constant';
+import { API_URL, USER_DETAILS, API_STORAGE_URL, WEBSITE_URL, encrypt, decrypt } from './../Constant';
 import Videoplayer from './Videoplayer';
 import { useNavigate, useSearchParams, useParams, Link } from 'react-router-dom';
+
 function Videogallery() {
     const params = useParams();//param
     const [searchParams, setSearchParams] = useSearchParams();//queryparam
@@ -58,7 +59,9 @@ function Videogallery() {
             // console.log(result.result);
             if (result.total > 0) {
                 setVideodetails(result.result);
-                setVideourl(`${API_URL}/nodejS-streams?watch=${result.result._id}`);
+                const idis = encrypt(result.result._id);
+                // console.log(decrypt(result.encrypt));
+                setVideourl(`${API_URL}/nodejS-streams?watch=${idis}`);
                 if (result.result.video_file_filedetails.filesize == "") {
                     setCheckvideo(false);
                 } else {
