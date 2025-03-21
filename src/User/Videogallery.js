@@ -5,15 +5,21 @@ import './../css/App.css';
 import { API_URL, USER_DETAILS, API_STORAGE_URL, WEBSITE_URL, encrypt, decrypt } from './../Constant';
 import Videoplayer from './Videoplayer';
 import { useNavigate, useSearchParams, useParams, Link } from 'react-router-dom';
-
+import { useLocation } from "react-router-dom";
+const useQuery = () => {
+    return new URLSearchParams(useLocation().search);
+};
 function Videogallery() {
+    const query = useQuery();
+    const watchis = query.get("watch");
+    const location = useLocation();
     const params = useParams();//param
     const [searchParams, setSearchParams] = useSearchParams();//queryparam
     const navigate = useNavigate();
     const LOGIN_USER = USER_DETAILS();
     const [limitval, setLimitval] = useState([]);
     const [currentpage, setCurrentpage] = useState(1);
-    const [postsperpage, setPostsperpage] = useState(5);
+    const [postsperpage, setPostsperpage] = useState(100);
     const [alltotal, setAlltotal] = useState(0);
     var [pagingcounter, setPagingcounter] = useState(1);
     const [newdata, setNewdata] = useState([]);
@@ -31,12 +37,14 @@ function Videogallery() {
         }
         getdata(currentpage, postsperpage);
         setVideoid(searchParams.get('watch'));
-        console.log(videoid, searchParams.get('watch'));
+        // console.log(videoid, searchParams.get('watch'));
         if (searchParams.get('watch') != null && searchParams.get('watch') != "") {
             GetVideoById(searchParams.get('watch'));
+        } else {
+            setCheckvideo(false);
         }
         // console.log(videoid, searchParams.get('watch'));
-    }, []);
+    }, [location.pathname, watchis]);
     async function WatchVideo(item) {
         if (item.video_file_filedetails.filesize !== "") {
             // window.location.href = `${WEBSITE_URL}/user/video-gallery?watch=${item._id}`;
@@ -59,8 +67,10 @@ function Videogallery() {
             // console.log(result.result);
             if (result.total > 0) {
                 setVideodetails(result.result);
-                const idis = encrypt(result.result._id);
+                const idis = encodeURIComponent(encrypt(result.result._id));
                 // console.log(decrypt(result.encrypt));
+                // console.log(`${API_URL}/nodejS-streams?watch=${result.result._id}`)
+                // console.log(`?watch=${idis}`)
                 setVideourl(`${API_URL}/nodejS-streams?watch=${idis}`);
                 if (result.result.video_file_filedetails.filesize == "") {
                     setCheckvideo(false);
@@ -88,13 +98,14 @@ function Videogallery() {
                 'authorization': `Bearer ${LOGIN_USER.token}`,
             }
         });
-        result = await result.json()
+        result = await result.json();
+        // console.log(result);
         if (result.status === 200) {
             setCurrentpage(result.list.page);
             setPostsperpage(result.list.limit);
             setAlltotal(result.list.totalDocs);
             setNewdata(result.list.docs);
-            console.log(newdata);
+            // console.log(newdata);
             setPagingcounter(result.list.pagingCounter);
             if (result.list.totalDocs <= 5) {
                 setLimitval([5]);
@@ -138,6 +149,7 @@ function Videogallery() {
     }
     return (
         <div>
+            {/* <h6>{location.pathname}</h6> */}
             <h2 style={{ textAlign: "center" }}>Video Gallery</h2>
 
 

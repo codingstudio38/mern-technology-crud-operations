@@ -1,5 +1,5 @@
 import './../css/chat-box.css';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_URL, WEBSITE_PUBLIC, API_STORAGE_URL, USER_DETAILS, SET_LOCAL, GET_LOCAL, REMOVE_LOCAL } from './../Constant';
 import Messagefilefilter from './Messagefilefilter';
@@ -23,6 +23,10 @@ function Chatlist() {
     const [loginid, setLoginid] = useState(LOGIN_USER._id);
     const [typinglabel, setTypinglabel] = useState(false);
     const [wsclientid, setWsclientid] = useState('');
+    let [page, setPage] = useState(1);
+    let [limit, setLimit] = useState(10);
+    let [totalpage, setTotalpage] = useState(0);
+
 
     var activewsclients = [];
     var allusers = [];
@@ -366,6 +370,10 @@ function Chatlist() {
         //     msg: "new user conected",
         //     user: LOGIN_USER._id
         // }));
+        setChatlist([]);
+        setTotalchat(0);
+        setTotalpage(0);
+        setPage(1);
         setChatuser(id);
         setChatboxopen(true);
         REMOVE_LOCAL('activechatuser');
@@ -382,6 +390,10 @@ function Chatlist() {
             setChatusername(result.from_user_data.name);
             setChatuserphoto(`${API_STORAGE_URL}/users-file/${result.from_user_data.photo}`);
             setTotalchat(result.total);
+            setChatlist([]);
+            setTotalchat(0);
+            setTotalpage(0);
+            setPage(1);
             GetActiveChatList(id);
             $(`#unsceendiv_${id}`).html(``);
         } else {
@@ -389,7 +401,7 @@ function Chatlist() {
         }
     }
     async function GetActiveChatList(id) {
-        let result = await fetch(`${API_URL}/chat-list?from_user=${LOGIN_USER._id}&to_user=${id}`, {
+        let result = await fetch(`${API_URL}/chat-list?page=${page}&limit=${limit}&from_user=${LOGIN_USER._id}&to_user=${id}`, {
             method: 'GET',
             headers: {
                 'authorization': `Bearer ${LOGIN_USER.token}`,
@@ -397,8 +409,13 @@ function Chatlist() {
         });
         result = await result.json();
         if (result.status === 200) {
-            setChatlist(result.chat_data);
+            console.log(result.pagination.docs);
+            setChatlist(result.pagination.docs);
+            // console.log(chatlist);
+            // console.log(chatlist);
             setTotalchat(result.total);
+            setTotalpage(result.pagination.totalpage);
+            // setPage(result.pagination.current_page);
             setTimeout(() => {
                 const element = document.getElementById("chat-history");
                 element.scrollTop = element.scrollHeight;
@@ -407,7 +424,62 @@ function Chatlist() {
             alert(result.message);
         }
     }
-
+    const PageChange = async () => {
+        setPage((prevCount) => prevCount + 1);
+        // console.log(page, chatuser);
+        let result = await fetch(`${API_URL}/chat-list?page=${page}&limit=${limit}&from_user=${LOGIN_USER._id}&to_user=${chatuser}`, {
+            method: 'GET',
+            headers: {
+                'authorization': `Bearer ${LOGIN_USER.token}`,
+            }
+        });
+        result = await result.json();
+        if (result.status === 200) {
+            console.log(result.pagination.docs);
+            result.pagination.docs.forEach((items) => {
+                chatlist.push(items);
+            })
+            // console.log(chatlist);
+            // console.log(chatlist);
+            // setChatlist(result.chat_data);
+            setTotalchat(result.total);
+            setTotalpage(result.pagination.totalpage);
+            // setPage(result.pagination.current_page);
+            // setTimeout(() => {
+            //     const element = document.getElementById("chat-history");
+            //     element.scrollTop = element.scrollHeight;
+            // }, 200)
+        } else {
+            alert(result.message);
+        }
+    };
+    // async function PageChange() {
+    //     let p = page++;
+    //     setPage(p);
+    //     console.log(page, p);
+    //     let result = await fetch(`${API_URL}/chat-list?page=${page}&limit=${limit}&from_user=${LOGIN_USER._id}&to_user=${chatuser}`, {
+    //         method: 'GET',
+    //         headers: {
+    //             'authorization': `Bearer ${LOGIN_USER.token}`,
+    //         }
+    //     });
+    //     result = await result.json();
+    //     if (result.status === 200) {
+    //         result.chat_data.forEach((items) => {
+    //             chatlist.push(items);
+    //         })
+    //         // setChatlist(result.chat_data);
+    //         setTotalchat(result.total);
+    //         setTotalpage(result.pagination.totalpage);
+    //         setPage(result.pagination.current_page);
+    //         // setTimeout(() => {
+    //         //     const element = document.getElementById("chat-history");
+    //         //     element.scrollTop = element.scrollHeight;
+    //         // }, 200)
+    //     } else {
+    //         alert(result.message);
+    //     }
+    // }
     function onNewMessage(data) {
 
         var chatuser_datais, user_is, user_id, active;
@@ -636,6 +708,15 @@ function Chatlist() {
                                 <i className="fa fa-star" />
                             </div>
                             <div className="chat-history" id="chat-history">
+                                <div className="col-md-12 text-center">{page}
+                                    {page <= totalpage ?
+                                        <button type="button"
+                                            className="btn btn-success btn-sm text-center" onClick={PageChange} style={{ margin: '5px' }} title="Load More.." >Load More..</button> :
+                                        <></>}
+
+
+
+                                </div>
                                 <ul>
                                     {
                                         chatlist.map((item, index) =>

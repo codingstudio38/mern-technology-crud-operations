@@ -320,7 +320,7 @@ function Userspost() {
                         <th className='th-center'>Description</th>
                         <th className='th-center'>Thumbnail</th>
                         <th className='th-center'>Video</th>
-                        <th className='th-center'>Content</th>
+                        {/* <th className='th-center'>Content</th> */}
                         <th className='th-center'>Created Date</th>
                         <th className='th-center'>Action</th>
                     </tr>
