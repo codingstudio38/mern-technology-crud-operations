@@ -11,6 +11,7 @@ import Edituser from './User/Edituser';
 import Chatlist from './User/Chatlist';
 import Videogallery from './User/Videogallery'
 import { WEBSITE_BASE_URL } from './Constant';
+import Chatgpt from './User/Chatgpt';
 function App() {
   return (
     <div>
@@ -24,6 +25,7 @@ function App() {
             <Route path='users-post' element={<Protected Component={Userspost} />} />
             <Route path='video-gallery' element={<Protected Component={Videogallery} />} />
             <Route path='chat-box' element={<Protected Component={Chatlist} />} />
+            <Route path='chat-gpt' element={<Protected Component={Chatgpt} />} />
           </Route>
           <Route path='*' element={<Page404 />} />
         </Routes>

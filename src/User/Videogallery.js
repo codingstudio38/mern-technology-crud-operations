@@ -17,9 +17,12 @@ function Videogallery() {
     const [searchParams, setSearchParams] = useSearchParams();//queryparam
     const navigate = useNavigate();
     const LOGIN_USER = USER_DETAILS();
+    const [current_scroll_position, setCurrent_scroll_position] = useState(0);
+    const [pre_scroll_position, setPre_scroll_position] = useState(0);
     const [limitval, setLimitval] = useState([]);
     const [currentpage, setCurrentpage] = useState(1);
-    const [postsperpage, setPostsperpage] = useState(100);
+    const [lastpage, setLastpage] = useState(0);
+    const [postsperpage, setPostsperpage] = useState(8);
     const [alltotal, setAlltotal] = useState(0);
     var [pagingcounter, setPagingcounter] = useState(1);
     const [newdata, setNewdata] = useState([]);
@@ -28,7 +31,9 @@ function Videogallery() {
     const [videodetails, setVideodetails] = useState({});
     const [videourl, setVideourl] = useState("");
     const [reloadvideo, setReloadvideo] = useState(false);
+    const [datalistloading, setDatalistloading] = useState(false);
     useEffect(() => {
+        // window.addEventListener("scroll", handelInfiniteScroll);
         document.title = "MERN Technology || Video Gallery";
         if (LOGIN_USER === false) {
             window.localStorage.clear();
@@ -45,6 +50,52 @@ function Videogallery() {
         }
         // console.log(videoid, searchParams.get('watch'));
     }, [location.pathname, watchis]);
+
+    useEffect(() => {
+        window.addEventListener("scroll", handelInfiniteScroll);
+        return () => window.removeEventListener("scroll", handelInfiniteScroll);
+    }, [current_scroll_position, lastpage, currentpage, datalistloading, pre_scroll_position]);
+    const handelInfiniteScroll = async () => {
+        setCurrent_scroll_position((pre) => {
+            return document.documentElement.scrollTop;
+        });
+        // console.clear();
+        console.log(current_scroll_position, pre_scroll_position);
+        try {
+            // console.log("scrollHeight " + document.documentElement.scrollHeight);
+            // console.log("innerHeight " + window.innerHeight);
+            // console.log("scrollTop " + document.documentElement.scrollTop);
+            if ((window.innerHeight + document.documentElement.scrollTop + 1) > document.documentElement.scrollHeight) {
+                // console.log("current_scroll_position " +this.current_scroll_position);
+                // console.log("pre_scroll_position " +this.pre_scroll_position);
+                if (lastpage >= currentpage) {
+                    if (datalistloading == false) {
+                        if (current_scroll_position > pre_scroll_position) {// going to bottom
+                            setCurrentpage((p) => {
+                                return currentpage + 1;
+                            });
+                            console.log(currentpage, currentpage + 1);
+                            setDatalistloading(true);
+                            getdata(currentpage, postsperpage);
+                            setPre_scroll_position((pre) => {
+                                return document.documentElement.scrollTop;
+                            });
+                            console.log(`window scroll down..`);
+                        } else {
+                            console.log(`window scroll top..`);
+                        }
+                    } else {
+                        console.log('data loading..');
+                    }
+                } else {
+                    console.log(`data end`);
+                }
+
+            }
+        } catch (error) {
+            console.log(error.message);
+        }
+    };
     async function WatchVideo(item) {
         if (item.video_file_filedetails.filesize !== "") {
             // window.location.href = `${WEBSITE_URL}/user/video-gallery?watch=${item._id}`;
@@ -87,43 +138,52 @@ function Videogallery() {
         }
     }
     async function getdata(page, size) {
+
         if (LOGIN_USER === false) {
             window.localStorage.clear();
             navigate('./../../');
             return;
         }
-        let result = await fetch(`${API_URL}/users/post-list?page=${page}&size=${size}&userid=`, {
-            method: 'GET',
-            headers: {
-                'authorization': `Bearer ${LOGIN_USER.token}`,
-            }
-        });
-        result = await result.json();
-        // console.log(result);
-        if (result.status === 200) {
-            setCurrentpage(result.list.page);
-            setPostsperpage(result.list.limit);
-            setAlltotal(result.list.totalDocs);
-            setNewdata(result.list.docs);
-            // console.log(newdata);
-            setPagingcounter(result.list.pagingCounter);
-            if (result.list.totalDocs <= 5) {
-                setLimitval([5]);
-            } else if (result.list.totalDocs <= 10) {
-                setLimitval([5, 10]);
-            } else if (result.list.totalDocs <= 25) {
-                setLimitval([5, 10, 25]);
-            } else if (result.list.totalDocs <= 50) {
-                setLimitval([5, 10, 25, 50]);
-            } else if (result.list.totalDocs <= 100) {
-                setLimitval([5, 10, 25, 50, 100]);
-            } else {
-                setLimitval([5, 10, 25, 50, 100]);
-            }
-        } else {
-            alert(result.message);
+        if (datalistloading) {
+            console.log('data stil loading. plase wait..');
+            return false;
         }
+        setDatalistloading(true);
+        setTimeout(async () => {
+            let result = await fetch(`${API_URL}/users/post-list?page=${page}&size=${size}&userid=`, {
+                method: 'GET',
+                headers: {
+                    'authorization': `Bearer ${LOGIN_USER.token}`,
+                }
+            });
+            result = await result.json();
+            setDatalistloading(false)
+            // console.log(result);
+            if (result.status === 200) {
+                setLastpage(result.list.totalPages)
+                setAlltotal(result.list.totalDocs);
+                setNewdata((prev) => [...prev, ...result.list.docs]);
+                setPagingcounter(result.list.pagingCounter);
+                if (result.list.totalDocs <= 5) {
+                    setLimitval([5]);
+                } else if (result.list.totalDocs <= 10) {
+                    setLimitval([5, 10]);
+                } else if (result.list.totalDocs <= 25) {
+                    setLimitval([5, 10, 25]);
+                } else if (result.list.totalDocs <= 50) {
+                    setLimitval([5, 10, 25, 50]);
+                } else if (result.list.totalDocs <= 100) {
+                    setLimitval([5, 10, 25, 50, 100]);
+                } else {
+                    setLimitval([5, 10, 25, 50, 100]);
+                }
+            } else {
+                alert(result.message);
+            }
+        }, 1000)
     }
+
+
     function changePage(page) {
         getdata(page, postsperpage);
     }
@@ -155,63 +215,11 @@ function Videogallery() {
 
             {
                 checkvideo == false ?
-                    <div className='row col-md-12'>
-                        {
-                            newdata.map((item, index) =>
-                                <div className="col-md-3 mb-4" style={{ 'cursor': 'pointer' }} onClick={() => WatchVideo(item)} key={index} id={index}>
-                                    <div className={item.video_file_filedetails.filesize == "" ?
-                                        "card video-not-found"
-                                        : videoid == item._id ? 'card current-video' : "card"}>
-                                        {
-                                            item.thumnail_filedetails.filesize == "" ?
-                                                <img className="card-img-top highte200" src={`${WEBSITE_URL}/video-thumbnail.jpg`} alt="Card image cap" />
-                                                : <img className="card-img-top highte200" src={`${item.thumnail_filedetails.file_path}`} alt="Card image cap" />
-                                        }
-                                        <div className="card-body">
-
-                                            <p className="card-text">
-                                                {
-                                                    item.user_filedetails.filesize == "" ?
-                                                        <img className="userphoto" src={`${WEBSITE_URL}/profile.png`} alt={item.user_field.name} />
-                                                        : <img className="userphoto" src={`${item.user_filedetails.file_path}`} alt={item.user_field.name} />
-                                                }
-                                                {item.user_field.name}</p>
-                                            <h5 className="card-title cut-text">{item.title}</h5>
-                                            <p className="card-text cut-text">{item.content}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        }
-                    </div>
-                    :
-                    <div className='row col-md-12'>
-                        <div className='col-md-8'>
-                            <div className="video-wrapper">
-                                {
-                                    reloadvideo == true ?
-                                        <></>
-                                        :
-                                        <video id="videoPlayer" className="react-player" controls poster={
-                                            videodetails.thumnail_filedetails.filesize == "" ? `${WEBSITE_URL}/video-thumbnail.jpg`
-                                                :
-                                                `${videodetails.thumnail_filedetails.file_path}`
-                                        }>
-                                            <source src={videourl} type="video/mp4"></source>
-                                        </video>
-
-                                }
-                                {/*<Videoplayer videourl={videourl} thumbnail={videodetails.thumnail_filedetails.filesize == "" ? `${WEBSITE_URL}/video-thumbnail.jpg` : `${videodetails.thumnail_filedetails.file_path}`} /> */}
-                            </div>
-                            <div className='video-details'>
-                                <h4>{videodetails.title}</h4>
-                                <p>{videodetails.content}</p>
-                            </div>
-                        </div>
-                        <div className='col-md-4'>
+                    <>
+                        <div className='row col-md-12'>
                             {
                                 newdata.map((item, index) =>
-                                    <div className="col-sm-12 m-1" style={{ 'cursor': 'pointer' }} onClick={() => WatchVideo(item)} key={index} id={index}>
+                                    <div className="col-md-3 mb-4" style={{ 'cursor': 'pointer' }} onClick={() => WatchVideo(item)} key={index} id={index}>
                                         <div className={item.video_file_filedetails.filesize == "" ?
                                             "card video-not-found"
                                             : videoid == item._id ? 'card current-video' : "card"}>
@@ -237,7 +245,87 @@ function Videogallery() {
                                 )
                             }
                         </div>
-                    </div>
+                        {
+                            datalistloading == true ?
+                                <div style={{ textAlign: "center", marginTop: '20px', marginBottom: '40px' }}>
+                                    <div className="spinner-border text-primary" role="status" style={{ textAlign: "center", marginTop: '20px', marginBottom: '40px' }}>
+                                        <span className="sr-only">Loading...</span>
+                                    </div>
+                                </div>
+
+                                :
+                                <div></div>
+                        }
+                    </>
+                    :
+                    <>
+                        <div className='row col-md-12'>
+                            <div className='col-md-8'>
+                                <div className="video-wrapper">
+                                    {
+                                        reloadvideo == true ?
+                                            <></>
+                                            :
+                                            <video id="videoPlayer" className="react-player" controls poster={
+                                                videodetails.thumnail_filedetails.filesize == "" ? `${WEBSITE_URL}/video-thumbnail.jpg`
+                                                    :
+                                                    `${videodetails.thumnail_filedetails.file_path}`
+                                            }>
+                                                <source src={videourl} type="video/mp4"></source>
+                                            </video>
+
+                                    }
+                                    {/*<Videoplayer videourl={videourl} thumbnail={videodetails.thumnail_filedetails.filesize == "" ? `${WEBSITE_URL}/video-thumbnail.jpg` : `${videodetails.thumnail_filedetails.file_path}`} /> */}
+                                </div>
+                                <div className='video-details'>
+                                    <h4>{videodetails.title}</h4>
+                                    <p>{videodetails.content}</p>
+                                </div>
+                            </div>
+                            <div className='col-md-4'>
+                                {
+                                    newdata.map((item, index) =>
+                                        <div className="col-sm-12 m-1" style={{ 'cursor': 'pointer' }} onClick={() => WatchVideo(item)} key={index} id={index}>
+                                            <div className={item.video_file_filedetails.filesize == "" ?
+                                                "card video-not-found"
+                                                : videoid == item._id ? 'card current-video' : "card"}>
+                                                {
+                                                    item.thumnail_filedetails.filesize == "" ?
+                                                        <img className="card-img-top highte200" src={`${WEBSITE_URL}/video-thumbnail.jpg`} alt="Card image cap" />
+                                                        : <img className="card-img-top highte200" src={`${item.thumnail_filedetails.file_path}`} alt="Card image cap" />
+                                                }
+                                                <div className="card-body">
+
+                                                    <p className="card-text">
+                                                        {
+                                                            item.user_filedetails.filesize == "" ?
+                                                                <img className="userphoto" src={`${WEBSITE_URL}/profile.png`} alt={item.user_field.name} />
+                                                                : <img className="userphoto" src={`${item.user_filedetails.file_path}`} alt={item.user_field.name} />
+                                                        }
+                                                        {item.user_field.name}</p>
+                                                    <h5 className="card-title cut-text">{item.title}</h5>
+                                                    <p className="card-text cut-text">{item.content}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+                                }
+
+                                {
+                                    datalistloading == true ?
+                                        <div style={{ textAlign: "center", marginTop: '20px', marginBottom: '40px' }}>
+                                            <div className="spinner-border text-primary" role="status" style={{ textAlign: "center", marginTop: '20px', marginBottom: '40px' }}>
+                                                <span className="sr-only">Loading...</span>
+                                            </div>
+                                        </div>
+
+                                        :
+                                        <div></div>
+                                }
+                            </div>
+                        </div>
+
+                    </>
             }
 
 

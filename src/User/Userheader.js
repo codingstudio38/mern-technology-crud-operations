@@ -91,6 +91,7 @@ function Userheader() {
                     <NavLink className={"navlink"} to="/user/users-post">Users Post</NavLink>
                     <NavLink className={"navlink"} to="/user/video-gallery">Video Gallery</NavLink>
                     <NavLink className={"navlink"} to="/user/chat-box">Live Chat</NavLink>
+                    <NavLink className={"navlink"} to="/user/chat-gpt">Chat Gpt</NavLink>
                 </Nav>
                 {
                     checkUser() ?
