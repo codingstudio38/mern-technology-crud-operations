@@ -33,7 +33,6 @@ function Videogallery() {
     const [reloadvideo, setReloadvideo] = useState(false);
     const [datalistloading, setDatalistloading] = useState(false);
     useEffect(() => {
-        // window.addEventListener("scroll", handelInfiniteScroll);
         document.title = "MERN Technology || Video Gallery";
         if (LOGIN_USER === false) {
             window.localStorage.clear();
@@ -64,18 +63,16 @@ function Videogallery() {
                 if (currentpage <= lastpage) {
                     if (!datalistloading) {
                         if (current_scroll_position > pre_scroll_position) {// going to bottom
-                            console.log(currentpage);
                             if (currentpage == 1) {
                                 setCurrentpage((p) => {
                                     return 2;
                                 });
                             } else {
                                 setCurrentpage((p) => {
-                                    return currentpage + 1;
+                                    return p + 1;
                                 });
                             }
                             setDatalistloading(true);
-                            console.log(currentpage);
                             getdata(currentpage, postsperpage);
                             setPre_scroll_position((pre) => {
                                 return document.documentElement.scrollTop;
@@ -98,7 +95,6 @@ function Videogallery() {
     };
     async function WatchVideo(item) {
         if (item.video_file_filedetails.filesize !== "") {
-            // window.location.href = `${WEBSITE_URL}/user/video-gallery?watch=${item._id}`;
             navigate(`./../../user/video-gallery?watch=${item._id}`);
             GetVideoById(item._id);
             setVideoid(item._id);
@@ -115,14 +111,10 @@ function Videogallery() {
         result = await result.json();
         setReloadvideo(false);
         if (result.status === 200) {
-            // console.log(result.result);
             if (result.total > 0) {
                 setVideodetails(result.result);
                 const idis = encodeURIComponent(encrypt(result.result._id));
-                // console.log(decrypt(result.encrypt));
-                // console.log(`${API_URL}/nodejS-streams?watch=${result.result._id}`)
-                // console.log(`?watch=${idis}`)
-                setVideourl(`${API_URL}/nodejS-streams?watch=${idis}`);
+                setVideourl(`${API_URL}/video-player?watch=${idis}`);
                 if (result.result.video_file_filedetails.filesize == "") {
                     setCheckvideo(false);
                 } else {
