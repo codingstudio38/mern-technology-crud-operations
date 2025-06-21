@@ -41,16 +41,15 @@ function Videogallery() {
             return;
         }
         getdata(currentpage, postsperpage);
+    }, []);
+    useEffect(() => {
         setVideoid(searchParams.get('watch'));
-        // console.log(videoid, searchParams.get('watch'));
         if (searchParams.get('watch') != null && searchParams.get('watch') != "") {
             GetVideoById(searchParams.get('watch'));
         } else {
             setCheckvideo(false);
         }
-        // console.log(videoid, searchParams.get('watch'));
     }, [location.pathname, watchis]);
-
     useEffect(() => {
         window.addEventListener("scroll", handelInfiniteScroll);
         return () => window.removeEventListener("scroll", handelInfiniteScroll);
@@ -60,22 +59,23 @@ function Videogallery() {
             return document.documentElement.scrollTop;
         });
         // console.clear();
-        console.log(current_scroll_position, pre_scroll_position);
         try {
-            // console.log("scrollHeight " + document.documentElement.scrollHeight);
-            // console.log("innerHeight " + window.innerHeight);
-            // console.log("scrollTop " + document.documentElement.scrollTop);
             if ((window.innerHeight + document.documentElement.scrollTop + 1) > document.documentElement.scrollHeight) {
-                // console.log("current_scroll_position " +this.current_scroll_position);
-                // console.log("pre_scroll_position " +this.pre_scroll_position);
-                if (lastpage >= currentpage) {
-                    if (datalistloading == false) {
+                if (currentpage <= lastpage) {
+                    if (!datalistloading) {
                         if (current_scroll_position > pre_scroll_position) {// going to bottom
-                            setCurrentpage((p) => {
-                                return currentpage + 1;
-                            });
-                            console.log(currentpage, currentpage + 1);
+                            console.log(currentpage);
+                            if (currentpage == 1) {
+                                setCurrentpage((p) => {
+                                    return 2;
+                                });
+                            } else {
+                                setCurrentpage((p) => {
+                                    return currentpage + 1;
+                                });
+                            }
                             setDatalistloading(true);
+                            console.log(currentpage);
                             getdata(currentpage, postsperpage);
                             setPre_scroll_position((pre) => {
                                 return document.documentElement.scrollTop;
@@ -142,10 +142,13 @@ function Videogallery() {
         if (LOGIN_USER === false) {
             window.localStorage.clear();
             navigate('./../../');
-            return;
+            setDatalistloading(false);
+            return false;
+
         }
         if (datalistloading) {
             console.log('data stil loading. plase wait..');
+            setDatalistloading(false);
             return false;
         }
         setDatalistloading(true);
@@ -160,9 +163,13 @@ function Videogallery() {
             setDatalistloading(false)
             // console.log(result);
             if (result.status === 200) {
-                setLastpage(result.list.totalPages)
+                setLastpage((p) => {
+                    return result.list.totalPages;
+                })
                 setAlltotal(result.list.totalDocs);
-                setNewdata((prev) => [...prev, ...result.list.docs]);
+                if (result.list.totalDocs > 0) {
+                    setNewdata((prev) => [...prev, ...result.list.docs]);
+                }
                 setPagingcounter(result.list.pagingCounter);
                 if (result.list.totalDocs <= 5) {
                     setLimitval([5]);
@@ -184,29 +191,29 @@ function Videogallery() {
     }
 
 
-    function changePage(page) {
-        getdata(page, postsperpage);
-    }
-    function changeperPage(e) {
-        if (e.target.value === "Limit") {
-            getdata(1, 5);
-            setPostsperpage(5);
-            setCurrentpage(1);
-        } else {
-            getdata(1, e.target.value);
-            setPostsperpage(e.target.value);
-            setCurrentpage(1);
-        }
-    }
+    // function changePage(page) {
+    //     getdata(page, postsperpage);
+    // }
+    // function changeperPage(e) {
+    //     if (e.target.value === "Limit") {
+    //         getdata(1, 5);
+    //         setPostsperpage(5);
+    //         setCurrentpage(1);
+    //     } else {
+    //         getdata(1, e.target.value);
+    //         setPostsperpage(e.target.value);
+    //         setCurrentpage(1);
+    //     }
+    // }
 
-    function PlayVideo() {
+    // function PlayVideo() {
 
-    }
-    function ChangeDate(d) {
-        let date = new Date(d);
-        let timeis = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;//:${date.getMilliseconds()
-        return `${date.toDateString()} ${timeis}`;
-    }
+    // }
+    // function ChangeDate(d) {
+    //     let date = new Date(d);
+    //     let timeis = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;//:${date.getMilliseconds()
+    //     return `${date.toDateString()} ${timeis}`;
+    // }
     return (
         <div>
             {/* <h6>{location.pathname}</h6> */}
