@@ -114,7 +114,18 @@ function Videogallery() {
             if (result.total > 0) {
                 setVideodetails(result.result);
                 const idis = encodeURIComponent(encrypt(result.result._id));
-                setVideourl(`${API_URL}/video-player?watch=${idis}`);
+                // const response = await fetch(`${API_URL}/video-player?watch=${idis}`, {
+                //     method: "GET",
+                //     headers: {
+                //         "Authorization": `Bearer ${LOGIN_USER.token}`,
+                //         "Range": "bytes=0-"
+                //     }
+                // });
+                // const blob = await response.blob();
+                // const blobUrl = URL.createObjectURL(blob);
+                // setVideourl(blobUrl); // video blob url
+                setVideourl(`${API_URL}/video?watch=${idis}`);
+
                 if (result.result.video_file_filedetails.filesize == "") {
                     setCheckvideo(false);
                 } else {
