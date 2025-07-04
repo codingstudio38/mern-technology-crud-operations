@@ -52,7 +52,7 @@ function Videogallery() {
     useEffect(() => {
         window.addEventListener("scroll", handelInfiniteScroll);
         return () => window.removeEventListener("scroll", handelInfiniteScroll);
-    }, [current_scroll_position, lastpage, currentpage, datalistloading, pre_scroll_position]);
+    }, [current_scroll_position, datalistloading, pre_scroll_position]);
     const handelInfiniteScroll = async () => {
         setCurrent_scroll_position((pre) => {
             return document.documentElement.scrollTop;
@@ -60,37 +60,35 @@ function Videogallery() {
         // console.clear();
         try {
             if ((window.innerHeight + document.documentElement.scrollTop + 1) > document.documentElement.scrollHeight) {
-                if (currentpage <= lastpage) {
+                if (currentpage < lastpage) {
                     if (!datalistloading) {
                         if (current_scroll_position > pre_scroll_position) {// going to bottom
-                            if (currentpage == 1) {
-                                setCurrentpage((p) => {
-                                    return 2;
-                                });
-                            } else {
-                                setCurrentpage((p) => {
-                                    return p + 1;
-                                });
-                            }
+                            let nextPage = currentpage === 1 ? 2 : currentpage + 1;
+                            setCurrentpage(nextPage);
                             setDatalistloading(true);
-                            getdata(currentpage, postsperpage);
+                            getdata(nextPage, postsperpage);
                             setPre_scroll_position((pre) => {
                                 return document.documentElement.scrollTop;
                             });
                             console.log(`window scroll down..`);
+                            return true;
                         } else {
                             console.log(`window scroll top..`);
+                            return false;
                         }
                     } else {
                         console.log('data loading..');
+                        return false;
                     }
                 } else {
                     console.log(`data end`);
+                    return false;
                 }
 
             }
         } catch (error) {
             console.log(error.message);
+            return false;
         }
     };
     async function WatchVideo(item) {
@@ -154,6 +152,7 @@ function Videogallery() {
             setDatalistloading(false);
             return false;
         }
+        // setCurrentpage(page);
         setDatalistloading(true);
         setTimeout(async () => {
             let result = await fetch(`${API_URL}/users/post-list?page=${page}&size=${size}&userid=`, {
