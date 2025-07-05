@@ -4,6 +4,7 @@ import './../css/App.css';
 // import Table from 'react-bootstrap/Table';
 import { API_URL, USER_DETAILS, API_STORAGE_URL, WEBSITE_URL, encrypt, decrypt } from './../Constant';
 import Videoplayer from './Videoplayer';
+import Youtubeloader from './Youtubeloader';
 import { useNavigate, useSearchParams, useParams, Link } from 'react-router-dom';
 import { useLocation } from "react-router-dom";
 const useQuery = () => {
@@ -192,33 +193,8 @@ function Videogallery() {
         }, 1000)
     }
 
-
-    // function changePage(page) {
-    //     getdata(page, postsperpage);
-    // }
-    // function changeperPage(e) {
-    //     if (e.target.value === "Limit") {
-    //         getdata(1, 5);
-    //         setPostsperpage(5);
-    //         setCurrentpage(1);
-    //     } else {
-    //         getdata(1, e.target.value);
-    //         setPostsperpage(e.target.value);
-    //         setCurrentpage(1);
-    //     }
-    // }
-
-    // function PlayVideo() {
-
-    // }
-    // function ChangeDate(d) {
-    //     let date = new Date(d);
-    //     let timeis = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;//:${date.getMilliseconds()
-    //     return `${date.toDateString()} ${timeis}`;
-    // }
     return (
         <div>
-            {/* <h6>{location.pathname}</h6> */}
             <h2 style={{ textAlign: "center" }}>Video Gallery</h2>
 
 
@@ -256,14 +232,9 @@ function Videogallery() {
                         </div>
                         {
                             datalistloading == true ?
-                                <div style={{ textAlign: "center", marginTop: '20px', marginBottom: '40px' }}>
-                                    <div className="spinner-border text-primary" role="status" style={{ textAlign: "center", marginTop: '20px', marginBottom: '40px' }}>
-                                        <span className="sr-only">Loading...</span>
-                                    </div>
-                                </div>
-
+                                <Youtubeloader />
                                 :
-                                <div></div>
+                                <></>
                         }
                     </>
                     :
@@ -284,7 +255,6 @@ function Videogallery() {
                                             </video>
 
                                     }
-                                    {/*<Videoplayer videourl={videourl} thumbnail={videodetails.thumnail_filedetails.filesize == "" ? `${WEBSITE_URL}/video-thumbnail.jpg` : `${videodetails.thumnail_filedetails.file_path}`} /> */}
                                 </div>
                                 <div className='video-details'>
                                     <h4>{videodetails.title}</h4>
